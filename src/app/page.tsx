@@ -5,7 +5,7 @@ import Player from '@/components/Player';
 import QueueList from '@/components/QueueList';
 import SettingsDashboard from '@/components/SettingsDashboard';
 import StatusIndicator from '@/components/StatusIndicator';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 export default function Home() {
   const [hasWindow, setHasWindow] = useState(false);
@@ -36,7 +36,9 @@ export default function Home() {
       </div>
 
       <SettingsDashboard />
-      <DonationAlertsAuthHandler />
+      <Suspense fallback={null}>
+        <DonationAlertsAuthHandler />
+      </Suspense>
     </main>
   );
 }

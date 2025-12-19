@@ -107,8 +107,6 @@ export default function DonationAlertsAuthHandler() {
         };
 
         handleExchange();
-        window.history.replaceState({}, '', '/');
-        router.replace('/');
     }, [searchParams, store.donationAlertsClientId, store.donationAlertsClientSecret, isProcessing, router, store]);
 
     return null;
