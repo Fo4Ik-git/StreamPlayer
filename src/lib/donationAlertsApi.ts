@@ -16,9 +16,10 @@ export async function getSocketToken(accessToken: string) {
       }),
       getScopesForUser: () => []
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const apiClient = new ApiClient({ authProvider: authProvider as any });
     
-    // @ts-ignore
+    // @ts-expect-error - using internal API to get user info from token
     const user = await apiClient.users.getUser();
     if (!user) {
         throw new Error('User not found');
@@ -45,6 +46,7 @@ export async function getChannelToken(accessToken: string, userId: string, clien
       }),
       getScopesForUser: () => []
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const apiClient = new ApiClient({ authProvider: authProvider as any });
     
     const channel = await apiClient.centrifugo.subscribeUserToDonationAlertEvents(userId, clientId);
@@ -196,13 +198,14 @@ export async function getDonationAlertsConnectionData(accessToken: string, clien
             }),
             getScopesForUser: () => []
         };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const apiClient = new ApiClient({ authProvider: authProvider as any });
         
         const socketToken = await apiClient.users.getSocketConnectionToken(userId);
 
-        let donationData: any;
-        let goalData: any;
-        let pollData: any;
+        let donationData: { channel: string, token: string };
+        let goalData: { channel: string, token: string };
+        let pollData: { channel: string, token: string };
 
         try {
             donationData = await apiClient.centrifugo.subscribeUserToDonationAlertEvents(userId, clientId);

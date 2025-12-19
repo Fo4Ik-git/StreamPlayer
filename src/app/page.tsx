@@ -11,7 +11,8 @@ export default function Home() {
   const [hasWindow, setHasWindow] = useState(false);
   
   useEffect(() => {
-    setHasWindow(true);
+    const timer = setTimeout(() => setHasWindow(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Avoid hydration mismatch on initial render for stored values if critical
@@ -24,7 +25,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white p-4 md:p-6 lg:p-8 flex flex-col gap-6">
       <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-zinc-800 pb-4">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-            StreamPlayer <span className="text-zinc-500 text-sm font-normal">v1.0</span>
+            StreamPlayer <span className="text-zinc-500 text-sm font-normal">v1.0 - Beta</span>
         </h1>
         <StatusIndicator />
       </header>

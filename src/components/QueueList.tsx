@@ -1,10 +1,48 @@
 'use client';
 
 import { useStore } from '@/store/useStore';
-import { Clock, ListVideo, Trash2 } from 'lucide-react';
+import {
+    closestCenter,
+    DndContext,
+    DragEndEvent,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { ListVideo, Trash2 } from 'lucide-react';
+import AddVideoForm from './AddVideoForm';
+import SortableQueueItem from './SortableQueueItem';
 
 export default function QueueList() {
-  const { queue, removeFromQueue, playNext, clearQueue } = useStore();
+  const { queue, removeFromQueue, clearQueue, reorderQueue } = useStore();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // 5px movement required to start dragging
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = queue.findIndex((v) => v.queueId === active.id);
+      const newIndex = queue.findIndex((v) => v.queueId === over.id);
+      reorderQueue(oldIndex, newIndex);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
@@ -24,6 +62,8 @@ export default function QueueList() {
         </button>
       </div>
       
+      <AddVideoForm />
+      
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {queue.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-2 opacity-50">
@@ -31,37 +71,25 @@ export default function QueueList() {
                 <p className="text-sm">Queue is empty</p>
             </div>
         ) : (
-            queue.map((video, index) => (
-            <div 
-                key={`${video.id}-${index}`} 
-                className="group flex gap-3 p-3 bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800/50 hover:border-zinc-700 rounded-lg transition-all"
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
             >
-                <div className="w-24 aspect-video bg-black rounded overflow-hidden flex-shrink-0 relative">
-                    <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                        <h4 className="text-sm font-medium text-zinc-200 line-clamp-2 leading-tight group-hover:text-white transition-colors">
-                            {video.title}
-                        </h4>
-                        <p className="text-xs text-zinc-500 mt-1 flex items-center gap-2">
-                             <span className="text-indigo-400">{video.requester}</span>
-                             <span>•</span>
-                             <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {video.duration.replace('PT','').replace('M',':').replace('S','')}</span>
-                        </p>
-                    </div>
-                </div>
-                <div className="flex flex-col justify-between items-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                        onClick={() => removeFromQueue(video.id)}
-                        className="text-zinc-500 hover:text-red-400 p-1"
-                        title="Remove"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-            ))
+                <SortableContext 
+                    items={queue.map(v => v.queueId!)} 
+                    strategy={verticalListSortingStrategy}
+                >
+                    {queue.map((video) => (
+                        <SortableQueueItem 
+                            key={video.queueId} 
+                            video={video} 
+                            onRemove={removeFromQueue} 
+                        />
+                    ))}
+                </SortableContext>
+            </DndContext>
         )}
       </div>
     </div>

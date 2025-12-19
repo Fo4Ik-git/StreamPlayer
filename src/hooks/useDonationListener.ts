@@ -53,6 +53,7 @@ export const useDonationListener = () => {
         const connect = async () => {
             try {
                 console.log('🔄 Starting DonationAlerts connection...');
+                setDaStatus('inactive');
                 
                 let currentToken = donationAlertsToken;
                 const now = Date.now();
@@ -102,48 +103,51 @@ export const useDonationListener = () => {
                     },
                     centrifugo: {
                         subscribeUserToDonationAlertEvents: async () => {
-                            console.log('📡 SDK requested donation channel subscription');
+                            // console.log('📡 SDK requested donation channel subscription');
                             return { 
                                 channel: `$alerts:donation_${connectionData.userId}`, 
                                 token: connectionData.channelTokens[`$alerts:donation_${connectionData.userId}`] || connectionData.channelToken 
                             };
                         },
                         subscribeUserToGoalUpdateEvents: async () => {
-                            console.log('📡 SDK requested goal channel subscription');
+                            // console.log('📡 SDK requested goal channel subscription');
                             return {
                                 channel: `$goals:goal_${connectionData.userId}`,
                                 token: connectionData.channelTokens[`$goals:goal_${connectionData.userId}`] || connectionData.channelToken
                             };
                         },
                         subscribeUserToPollUpdateEvents: async () => {
-                            console.log('📡 SDK requested poll channel subscription');
+                            // console.log('📡 SDK requested poll channel subscription');
                             return {
                                 channel: `$polls:poll_${connectionData.userId}`,
                                 token: connectionData.channelTokens[`$polls:poll_${connectionData.userId}`] || connectionData.channelToken
                             };
                         },
-                        subscribeUserToPrivateChannels: async (user: any, clientId: string, channels: string[]) => {
-                            console.log('📡 SDK requested private channels subscription:', channels);
+                        subscribeUserToPrivateChannels: async (_user: unknown, _clientId: string, channels: string[]) => {
+                            // console.log('📡 SDK requested private channels subscription:', channels);
                             return channels.map((name: string) => ({
                                 channel: name,
                                 token: connectionData.channelTokens[name] || connectionData.channelToken
                             }));
                         }
                     }
-                } as any;
+                };
                 
+                const { ApiClient } = await import('@donation-alerts/api');
                 eventsClientRef.current = new UserEventsClient({ 
-                    apiClient: preAuthenticatedClient, 
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    apiClient: preAuthenticatedClient as any, 
                     user: Number(connectionData.userId)
                 });
 
-                const handleData = async (event: any) => {
+                const handleData = async (event: { username?: string, amount: number | string, message?: string }) => {
                     if (!isActive) return;
                     console.log("📩 Processing Donation:", event);
                     
                     const amount = parseFloat(String(event.amount));
                     if (amount < minDonationAmount) {
                         console.log(`⚠️ Donation amount ${amount} is less than min ${minDonationAmount}`);
+                        toast.error(`Donation amount ${amount} is less than min ${minDonationAmount}`);
                         return;
                     }
 
@@ -165,6 +169,7 @@ export const useDonationListener = () => {
                                     });
                                     toast.success(`Added ${videoDetails.title}`);
                                 } else {
+                                    toast.error(`YouTube URL is invalid or video not found: ${url}`);
                                     console.log(`❌ YouTube URL is invalid or video not found: ${url}`);
                                 }
                             })();
@@ -176,7 +181,7 @@ export const useDonationListener = () => {
 
                 // Expose simulation command to window
                 if (process.env.NODE_ENV === 'development') {
-                    (window as any).simulateDonation = (message: string, amount: number = 500, name: string = 'Test User') => {
+                    (window as Window & typeof globalThis & { simulateDonation?: (m: string, a?: number, n?: string) => void }).simulateDonation = (message: string, amount: number = 500, name: string = 'Test User') => {
                         handleData({
                             username: name,
                             amount: amount,
