@@ -299,7 +299,7 @@ export default function SettingsDashboard() {
                        placeholder="Secret..."
                     />
                   </div>
-                  {/* <div className="space-y-2">
+                  <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-400">DonationAlerts User ID</label>
                     <input
                       type={showSecrets ? "text" : "password"}
@@ -308,7 +308,7 @@ export default function SettingsDashboard() {
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                       placeholder="12345"
                     />
-                  </div> */}
+                  </div>
                   
                   <div className="md:col-span-2 flex items-center justify-between mt-2">
                        <div className="text-xs text-zinc-500">

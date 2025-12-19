@@ -98,6 +98,7 @@ export default function DonationAlertsAuthHandler() {
                     }, 1000);
                 } else {
                     toast.error('Failed to authenticate with DonationAlerts');
+
                     // Clear the processed code ref so user can try again
                     processedCodeRef.current = null;
                 }
@@ -107,6 +108,8 @@ export default function DonationAlertsAuthHandler() {
         };
 
         handleExchange();
+        window.history.replaceState({}, '', '/');
+        router.replace('/');
     }, [searchParams, store.donationAlertsClientId, store.donationAlertsClientSecret, isProcessing, router, store]);
 
     return null;
