@@ -124,37 +124,49 @@ export default function SettingsDashboard() {
                                 },
                                 {
                                     step: 2,
-                                    text: "Create a project or select an existing one, then click",
-                                    highlight: "Enable",
-                                    sub: "Make sure 'YouTube Data API v3' is active."
+                                    text: "Create a project or select an existing one",
                                 },
                                 {
                                     step: 3,
-                                    text: "Go to the",
-                                    link: "Credentials",
-                                    url: "https://console.cloud.google.com/apis/credentials",
-                                    text2: "tab and click",
-                                    highlight: "Create Credentials > API key"
+                                    text: "Search",
+                                    highlight: "YouTube Data API v3",
+                                    text2: "in the search bar",
+                                    sub: "Enable the API."
                                 },
                                 {
                                     step: 4,
+                                    text: "Go to the",
+                                    highlight: "Credentials",
+                                    text2: "tab and click",
+                                    highlight2: "Create Credentials > API key"
+                                },
+                                {
+                                    step: 5,
                                     text: "Copy your new",
                                     highlight: "API key",
                                     sub: "Paste it into the field below and test."
                                 }
-                            ].map((item) => (
+                            ].map((item: any) => (
                                 <div key={item.step} className="flex gap-3">
                                     <div className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-400">
                                         {item.step}
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-xs text-zinc-300 leading-relaxed">
-                                            {item.text} {item.link && (
+                                            {item.text}{' '}
+                                            {item.highlight && <span className="text-white font-semibold">"{item.highlight}"</span>}
+                                            {item.link && (
                                                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline inline-flex items-center gap-0.5 font-medium">
                                                     {item.link} <ExternalLink className="w-2.5 h-2.5" />
                                                 </a>
                                             )}
-                                            {item.text2 && ` ${item.text2}`} {item.highlight && <span className="text-white font-semibold">"{item.highlight}"</span>}
+                                            {item.text2 && ` ${item.text2} `}
+                                            {item.highlight2 && <span className="text-white font-semibold">"{item.highlight2}"</span>}
+                                            {item.code && (
+                                                <code className="mx-1 px-1.5 py-0.5 bg-zinc-950 border border-zinc-800 rounded text-[10px] font-mono text-indigo-300">
+                                                    {item.code}
+                                                </code>
+                                            )}
                                         </p>
                                         {item.sub && <p className="text-[10px] text-zinc-500 leading-relaxed italic">{item.sub}</p>}
                                     </div>
@@ -239,7 +251,7 @@ export default function SettingsDashboard() {
                                           highlight: "Save",
                                           sub: "Copy the Client ID and Client Secret from the next screen."
                                       }
-                                  ].map((item) => (
+                                  ].map((item: any) => (
                                       <div key={item.step} className="flex gap-3">
                                           <div className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-400">
                                               {item.step}

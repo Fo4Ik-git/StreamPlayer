@@ -15,10 +15,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Avoid hydration mismatch on initial render for stored values if critical
-  // But here we just render components that handle it internally or are client side.
-  // Actually, for the layout itself, it's fine.
-
   if (!hasWindow) return null;
 
   return (

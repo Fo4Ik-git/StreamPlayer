@@ -16,8 +16,8 @@ export default function StatusIndicator() {
     <div className="flex items-center gap-4 bg-zinc-900/50 border border-zinc-800 px-4 py-2 rounded-full backdrop-blur-sm">
       <StatusDot label="DonationAlerts" status={daStatusFinal} />
       <div className="w-px h-4 bg-zinc-800" />
-      <StatusDot label="Donation X" status={dxStatus} />
-      <div className="w-px h-4 bg-zinc-800" />
+      {/* <StatusDot label="Donation X" status={dxStatus} />
+      <div className="w-px h-4 bg-zinc-800" /> */}
       <StatusDot label="YouTube API" status={ytStatus} />
     </div>
   );

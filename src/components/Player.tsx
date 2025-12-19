@@ -77,6 +77,7 @@ export default function Player() {
     <div className="flex flex-col gap-4 h-full">
         <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-2xl group">
           <MediaPlayer
+            key={currentVideo.queueId}
             ref={playerRef}
             src={currentVideo.url}
             title={currentVideo.title}
