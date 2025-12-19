@@ -31,28 +31,52 @@ export default function DonationAlertsAuthHandler() {
         setIsProcessing(true);
 
         const handleExchange = async () => {
+            // If we already have a token and it's not expired, don't try to exchange again
+            const now = Date.now();
+            if (store.donationAlertsToken && store.donationAlertsTokenExpiry && now < store.donationAlertsTokenExpiry - 60000) {
+                console.log('✅ Valid token already exists, skipping exchange');
+                router.replace('/');
+                return;
+            }
+
             try {
                 toast.info('Exchanging code for token...');
                 const redirectUri = `${window.location.protocol}//${window.location.host}`;
-                const tokenResponse = await exchangeCodeForToken(
+                const result = await exchangeCodeForToken(
                     store.donationAlertsClientId,
                     store.donationAlertsClientSecret,
                     code,
                     redirectUri
                 );
                 
-                if (tokenResponse.access_token) {
+                if (!result.success) {
+                    console.error('❌ Exchange failed:', result.error);
+                    
+                    if (result.status === 400) {
+                        toast.error('Invalid or expired authorization code. Please try connecting again.');
+                    } else {
+                        toast.error(`Failed to connect DonationAlerts: ${result.error || 'Unknown Error'}`);
+                    }
+                    
+                    // Clear the code and stop processing
+                    processedCodeRef.current = null;
+                    setIsProcessing(false);
+                    router.replace('/');
+                    return;
+                }
+
+                if (result.access_token) {
                     // Fetch user ID automatically
                     try {
                         const { getUserInfo } = await import('@/lib/donationAlertsApi');
-                        const userId = await getUserInfo(tokenResponse.access_token, store.donationAlertsClientId);
+                        const userId = await getUserInfo(result.access_token, store.donationAlertsClientId);
                         
                         // Calculate token expiry (current time + expires_in seconds)
-                        const expiryTimestamp = Date.now() + (tokenResponse.expires_in * 1000);
+                        const expiryTimestamp = Date.now() + (result.expires_in * 1000);
                         
                         store.setSettings({ 
-                            donationAlertsToken: tokenResponse.access_token,
-                            donationAlertsRefreshToken: tokenResponse.refresh_token,
+                            donationAlertsToken: result.access_token,
+                            donationAlertsRefreshToken: result.refresh_token,
                             donationAlertsTokenExpiry: expiryTimestamp,
                             donationAlertsUserId: String(userId)
                         });
@@ -60,11 +84,11 @@ export default function DonationAlertsAuthHandler() {
                     } catch (error) {
                         console.error('Failed to fetch user ID', error);
                         // Still save the tokens even if user ID fetch fails
-                        const expiryTimestamp = Date.now() + (tokenResponse.expires_in * 1000);
+                        const expiryTimestamp = Date.now() + (result.expires_in * 1000);
                         
                         store.setSettings({ 
-                            donationAlertsToken: tokenResponse.access_token,
-                            donationAlertsRefreshToken: tokenResponse.refresh_token,
+                            donationAlertsToken: result.access_token,
+                            donationAlertsRefreshToken: result.refresh_token,
                             donationAlertsTokenExpiry: expiryTimestamp
                         });
                         toast.success('DonationAlerts connected! Please enter your User ID manually in Settings.');

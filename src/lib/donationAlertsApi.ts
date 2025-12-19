@@ -81,13 +81,18 @@ export async function exchangeCodeForToken(clientId: string, clientSecret: strin
         if (!res.ok) {
             const text = await res.text();
             console.error('Token Exchange Error:', res.status, text);
-            throw new Error(`Failed to exchange token: ${res.status}`);
+            return { 
+                success: false, 
+                error: text, 
+                status: res.status 
+            };
         }
 
         const data = await res.json();
         console.log('✅ Token exchange successful!');
         
         return {
+            success: true,
             access_token: data.access_token,
             refresh_token: data.refresh_token,
             expires_in: data.expires_in,
@@ -96,7 +101,10 @@ export async function exchangeCodeForToken(clientId: string, clientSecret: strin
 
     } catch (error) {
         console.error('exchangeCodeForToken Error:', error);
-        throw error;
+        return { 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error) 
+        };
     }
 }
 
@@ -129,13 +137,18 @@ export async function refreshAccessToken(
         if (!res.ok) {
             const text = await res.text();
             console.error('Token Refresh Error:', res.status, text);
-            throw new Error(`Failed to refresh token: ${res.status}`);
+            return { 
+                success: false, 
+                error: text, 
+                status: res.status 
+            };
         }
 
         const data = await res.json();
         console.log('✅ Token refreshed successfully!');
         
         return {
+            success: true,
             access_token: data.access_token,
             refresh_token: data.refresh_token || refreshToken,
             expires_in: data.expires_in,
@@ -144,7 +157,10 @@ export async function refreshAccessToken(
 
     } catch (error) {
         console.error('refreshAccessToken Error:', error);
-        throw error;
+        return { 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error) 
+        };
     }
 }
 

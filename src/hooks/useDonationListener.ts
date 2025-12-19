@@ -66,21 +66,28 @@ export const useDonationListener = () => {
                     if (store.donationAlertsRefreshToken && store.donationAlertsClientId && store.donationAlertsClientSecret) {
                         try {
                             const { refreshAccessToken } = await import('@/lib/donationAlertsApi');
-                            const tokenResponse = await refreshAccessToken(
+                            const result = await refreshAccessToken(
                                 store.donationAlertsRefreshToken,
                                 store.donationAlertsClientId,
                                 store.donationAlertsClientSecret
                             );
                             
-                            const newExpiry = Date.now() + (tokenResponse.expires_in * 1000);
-                            store.setSettings({
-                                donationAlertsToken: tokenResponse.access_token,
-                                donationAlertsRefreshToken: tokenResponse.refresh_token,
-                                donationAlertsTokenExpiry: newExpiry
-                            });
-                            
-                            currentToken = tokenResponse.access_token;
-                            console.log('✅ Token refreshed successfully');
+                            if (result.success && result.access_token) {
+                                const newExpiry = Date.now() + (result.expires_in * 1000);
+                                store.setSettings({
+                                    donationAlertsToken: result.access_token,
+                                    donationAlertsRefreshToken: result.refresh_token,
+                                    donationAlertsTokenExpiry: newExpiry
+                                });
+                                
+                                currentToken = result.access_token;
+                                console.log('✅ Token refreshed successfully');
+                            } else {
+                                console.error('❌ Failed to refresh token:', result.error);
+                                setDaStatus('inactive');
+                                isConnectingRef.current = false;
+                                return;
+                            }
                         } catch (error) {
                             console.error('❌ Failed to refresh token:', error);
                             setDaStatus('inactive');
@@ -181,16 +188,14 @@ export const useDonationListener = () => {
                 };
 
                 // Expose simulation command to window
-                if (process.env.NODE_ENV === 'development') {
-                    (window as Window & typeof globalThis & { simulateDonation?: (m: string, a?: number, n?: string) => void }).simulateDonation = (message: string, amount: number = 500, name: string = 'Test User') => {
-                        handleData({
-                            username: name,
-                            amount: amount,
-                            message: message
-                        });
-                    };
-                    console.log('💡 TIP: Use simulateDonation(message, amount, name) in console to test');
-                }
+                (window as Window & typeof globalThis & { simulateDonation?: (m: string, a?: number, n?: string) => void }).simulateDonation = (message: string, amount: number = 500, name: string = 'Test User') => {
+                    handleData({
+                        username: name,
+                        amount: amount,
+                        message: message
+                    });
+                };
+                console.log('💡 TIP: Use simulateDonation(message, amount, name) in console to test');
 
                 eventsClientRef.current.onDonation(handleData);
 
