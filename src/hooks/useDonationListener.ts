@@ -1,15 +1,14 @@
-import { getChannelToken, getSocketToken } from '@/lib/donationAlertsApi';
 import { useStore } from '@/store/useStore';
+import { UserEventsClient } from '@donation-alerts/events';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useYoutubeValidator } from './useYoutubeValidator';
-// @ts-ignore
-const Centrifuge = require('centrifuge');
 
 export const useDonationListener = () => {
     const { 
         donationAlertsToken, 
         donationAlertsUserId, 
+        donationAlertsClientId,
         donationXApiKey, 
         addToQueue,
         minDonationAmount
@@ -20,36 +19,30 @@ export const useDonationListener = () => {
     const [daStatus, setDaStatus] = useState<'active' | 'inactive'>('inactive');
     const [dxStatus, setDxStatus] = useState<'active' | 'inactive'>('inactive');
     
-    // Use refs to prevent multiple simultaneous connections
     const isConnectingRef = useRef(false);
     const isConnectedRef = useRef(false);
-    const centrifugeRef = useRef<any | null>(null);
+    const eventsClientRef = useRef<UserEventsClient | null>(null);
     
-    // Store functions in refs to avoid dependency issues
     const validateVideoRef = useRef(validateVideo);
     const addToQueueRef = useRef(addToQueue);
     
-    // Update refs when functions change
     useEffect(() => {
         validateVideoRef.current = validateVideo;
         addToQueueRef.current = addToQueue;
     }, [validateVideo, addToQueue]);
     
-    // DonationAlerts Logic
     useEffect(() => {
-        if (!donationAlertsToken || !donationAlertsUserId) {
+        if (!donationAlertsToken || !donationAlertsUserId || !donationAlertsClientId) {
             setDaStatus('inactive');
             isConnectedRef.current = false;
             isConnectingRef.current = false;
             return;
         }
 
-        // Skip if already successfully connected
-        if (isConnectedRef.current && centrifugeRef.current) {
+        if (isConnectedRef.current && eventsClientRef.current) {
             return;
         }
 
-        // Prevent multiple simultaneous connection attempts
         if (isConnectingRef.current) {
             return;
         }
@@ -62,11 +55,10 @@ export const useDonationListener = () => {
                 console.log('🔄 Starting DonationAlerts connection...');
                 
                 let currentToken = donationAlertsToken;
-                
-                // Check if token is expired and refresh if needed
                 const now = Date.now();
                 const store = useStore.getState();
                 
+                // Token refresh logic...
                 if (store.donationAlertsTokenExpiry && now >= store.donationAlertsTokenExpiry) {
                     console.log('⏰ Access token expired, refreshing...');
                     if (store.donationAlertsRefreshToken && store.donationAlertsClientId && store.donationAlertsClientSecret) {
@@ -100,119 +92,129 @@ export const useDonationListener = () => {
                     }
                 }
                 
-                // 1. Get Socket Token
-                const socketToken = await getSocketToken(currentToken);
-                if (!isActive) return;
+                const { getDonationAlertsConnectionData } = await import('@/lib/donationAlertsApi');
+                const connectionData = await getDonationAlertsConnectionData(currentToken, store.donationAlertsClientId || '');
                 
-                console.log('✅ Socket token obtained');
-                
-                // 2. Initialize Centrifuge
-                centrifugeRef.current = new Centrifuge('wss://centrifugo.donationalerts.com/connection/websocket', {
-                    // Указываем любой путь, чтобы библиотека думала, что эндпоинт есть,
-                    // но мы перехватим запрос через getToken ниже.
-                    subscribeEndpoint: 'https://www.donationalerts.com/api/v1/centrifuge/subscribe',
-                    subscribeHeaders: {
-                        'Authorization': `Bearer ${currentToken}`
+                const preAuthenticatedClient = {
+                    users: {
+                        getUser: async () => ({ id: Number(connectionData.userId) }),
+                        getSocketConnectionToken: async () => connectionData.socketToken
+                    },
+                    centrifugo: {
+                        subscribeUserToDonationAlertEvents: async () => {
+                            console.log('📡 SDK requested donation channel subscription');
+                            return { 
+                                channel: `$alerts:donation_${connectionData.userId}`, 
+                                token: connectionData.channelTokens[`$alerts:donation_${connectionData.userId}`] || connectionData.channelToken 
+                            };
+                        },
+                        subscribeUserToGoalUpdateEvents: async () => {
+                            console.log('📡 SDK requested goal channel subscription');
+                            return {
+                                channel: `$goals:goal_${connectionData.userId}`,
+                                token: connectionData.channelTokens[`$goals:goal_${connectionData.userId}`] || connectionData.channelToken
+                            };
+                        },
+                        subscribeUserToPollUpdateEvents: async () => {
+                            console.log('📡 SDK requested poll channel subscription');
+                            return {
+                                channel: `$polls:poll_${connectionData.userId}`,
+                                token: connectionData.channelTokens[`$polls:poll_${connectionData.userId}`] || connectionData.channelToken
+                            };
+                        },
+                        subscribeUserToPrivateChannels: async (user: any, clientId: string, channels: string[]) => {
+                            console.log('📡 SDK requested private channels subscription:', channels);
+                            return channels.map((name: string) => ({
+                                channel: name,
+                                token: connectionData.channelTokens[name] || connectionData.channelToken
+                            }));
+                        }
                     }
-                });
-                centrifugeRef.current.setToken(socketToken);
+                } as any;
                 
-                console.log('🔌 Centrifuge instance created, connecting...');
-
-                centrifugeRef.current.on('message', (data: any) => {
-                    console.log("📡 RAW MESSAGE FROM DA:", data);
+                eventsClientRef.current = new UserEventsClient({ 
+                    apiClient: preAuthenticatedClient, 
+                    user: Number(connectionData.userId)
                 });
 
-                centrifugeRef.current.on('connect', async (ctx: any) => {
+                const handleData = async (event: any) => {
                     if (!isActive) return;
+                    console.log("📩 Processing Donation:", event);
                     
+                    const amount = parseFloat(String(event.amount));
+                    if (amount < minDonationAmount) {
+                        console.log(`⚠️ Donation amount ${amount} is less than min ${minDonationAmount}`);
+                        return;
+                    }
+
+                    const msg = event.message || '';
+                    const regExp = /(https?:\/\/[^\s]+)/g;
+                    const urls = msg.match(regExp);
+
+                    if (urls) {
+                        console.log(`🔗 Found ${urls.length} URLs in donation message`);
+                        for (const url of urls) {
+                            (async () => {
+                                const { isValid, videoDetails } = await validateVideoRef.current(url);
+                                if (isValid && videoDetails) {
+                                    addToQueueRef.current({
+                                        ...videoDetails,
+                                        requester: event.username || 'Anonymous',
+                                        amount: amount,
+                                        addedAt: Date.now()
+                                    });
+                                    toast.success(`Added ${videoDetails.title}`);
+                                } else {
+                                    console.log(`❌ YouTube URL is invalid or video not found: ${url}`);
+                                }
+                            })();
+                        }
+                    } else {
+                        console.log('ℹ️ No URLs found in donation message');
+                    }
+                };
+
+                // Expose simulation command to window
+                if (process.env.NODE_ENV === 'development') {
+                    (window as any).simulateDonation = (message: string, amount: number = 500, name: string = 'Test User') => {
+                        handleData({
+                            username: name,
+                            amount: amount,
+                            message: message
+                        });
+                    };
+                    console.log('💡 TIP: Use simulateDonation(message, amount, name) in console to test');
+                }
+
+                eventsClientRef.current.onDonation(handleData);
+
+                eventsClientRef.current.onGoalUpdate((event) => {
+                    if (!isActive) return;
+                    console.log("📩 Goal Update Received:", event);
+                });
+
+                eventsClientRef.current.onPollUpdate((event) => {
+                    if (!isActive) return;
+                    console.log("📩 Poll Update Received:", event);
+                });
+
+                eventsClientRef.current.onConnect(() => {
+                    if (!isActive) return;
+                    console.log("✅ SDK Events Client connected successfully!");
                     isConnectedRef.current = true;
                     isConnectingRef.current = false;
                     setDaStatus('active');
-                    console.log("✅ Centrifuge connected successfully!");
-                    console.log("Client ID:", ctx.client);
-
-                    // 3. Get Channel Token (Step 2 of DA docs)
-                    try {
-                        const channelToken = await getChannelToken(currentToken, donationAlertsUserId, ctx.client);
-                        if (!isActive) return;
-
-                        // const channelName = `$alerts:donation_${donationAlertsUserId}`;
-                        const channelName = `$alerts:custom_alert_${donationAlertsUserId}`;
-                        console.log("📡 Subscribing to channel:", channelName);
-
-                        // Centrifuge v2 uses subscribe with an events object including the token
-                        const sub = centrifugeRef.current!.subscribe(channelName, {
-                            token: channelToken,
-                        });
-
-                        (sub as any).token = channelToken;
-                        
-                        // Centrifuge v2 uses 'publication' for incoming messages on the sub object
-                        sub.on('publication', (subCtx: any) => {
-                           const data = subCtx.data;
-                           console.log("📩 New Donation Data:");
-                           
-                           const msg = data.message || '';
-                           const amount = parseFloat(data.amount);
-                           
-                           if (amount < minDonationAmount) return;
-
-                           const regExp = /(https?:\/\/[^\s]+)/g;
-                           const urls = msg.match(regExp);
-
-                           if (urls) {
-                               for (const url of urls) {
-                                  (async () => {
-                                      const { isValid, videoDetails } = await validateVideoRef.current(url);
-                                      if (isValid && videoDetails) {
-                                          addToQueueRef.current({
-                                              ...videoDetails,
-                                              requester: data.username || 'Anonymous',
-                                              amount: amount,
-                                              addedAt: Date.now()
-                                          });
-                                          toast.success(`Added ${videoDetails.title}`);
-                                      }
-                                  })();
-                               }
-                           }
-                        });
-
-                        sub.on('publish', (subCtx: any) => {
-                            console.log("📩 New Donation Data:", subCtx);
-                        });
-
-                        sub.on('error', (err: any) => {
-                            console.error("❌ Subscription error:", err);
-                        });
-
-                        sub.on('', (subCtx: any) => {
-                            console.log("📩 New Donation Data:", subCtx);
-                        });
-
-                        sub.on('close', () => {
-                            console.log('📡 Subscription closed');
-                        });
-
-                        sub.on('subscribe', (subCtx: any) => {
-                            console.log('📡 Subscription triggered successfully', subCtx);
-                        });
-                        
-                    } catch (err) {
-                        console.error("Failed to subscribe to channel", err);
-                    }
                 });
-                
-                centrifugeRef.current.on('disconnect', (ctx: any) => {
-                     if (isActive) {
+
+                eventsClientRef.current.onDisconnect(() => {
+                    if (isActive) {
+                        console.log('❌ SDK Events Client disconnected');
                         isConnectedRef.current = false;
-                        console.log('❌ Centrifuge disconnected', ctx);
                         setDaStatus('inactive');
                     }
                 });
 
-                centrifugeRef.current.connect();
+                await eventsClientRef.current.connect();
 
             } catch (error) {
                 console.error('❌ Failed to connect:', error);
@@ -225,39 +227,18 @@ export const useDonationListener = () => {
 
         return () => {
             isActive = false;
-            if (centrifugeRef.current) {
-                centrifugeRef.current.disconnect();
-                centrifugeRef.current = null;
+            if (eventsClientRef.current) {
+                eventsClientRef.current.disconnect();
+                eventsClientRef.current = null;
                 isConnectedRef.current = false;
             }
             isConnectingRef.current = false;
         };
-    }, [donationAlertsToken, donationAlertsUserId, minDonationAmount]);
+    }, [donationAlertsToken, donationAlertsUserId, donationAlertsClientId, minDonationAmount]);
 
-    // Donation X Logic
     useEffect(() => {
         setDxStatus(donationXApiKey ? 'active' : 'inactive'); 
     }, [donationXApiKey]);
-
-    // Console Helpers
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            (window as any).checkDonationStatus = () => {
-                console.log('DA Status:', daStatus, 'Connected:', isConnectedRef.current, 'Token:', donationAlertsToken);
-            };
-
-            (window as any).sendTestAlert = async (message: string, amount: number) => {
-                if (!donationAlertsToken) return;
-                try {
-                     const { sendTestAlert } = await import('@/lib/testAlert');
-                     await sendTestAlert(donationAlertsToken, Math.random().toString(), 'Test', message);
-                     console.log('✅ Test alert sent!');
-                } catch (e) {
-                    console.error('❌ Test alert failed:', e);
-                }
-            };
-        }
-    }, [donationAlertsToken, daStatus]);
 
     return { daStatus, dxStatus };
 }

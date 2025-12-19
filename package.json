@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "centrifuge": "^2.8.5",
+    "@donation-alerts/api": "^4.0.0",
+    "@donation-alerts/auth": "^4.0.0",
+    "@donation-alerts/events": "^4.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "next": "16.1.0",
@@ -18,7 +20,6 @@
     "react-player": "^3.4.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "ws": "^8.18.3",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

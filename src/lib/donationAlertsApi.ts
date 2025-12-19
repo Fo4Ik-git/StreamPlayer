@@ -1,77 +1,63 @@
 'use server';
 
-const DA_API_BASE = 'https://www.donationalerts.com/api/v1';
+import { ApiClient } from '@donation-alerts/api';
 
 export async function getSocketToken(accessToken: string) {
   try {
-    const res = await fetch(`${DA_API_BASE}/user/oauth`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: 'no-store',
-    });
+    // Use a shim AuthProvider that returns the token regardless of user ID
+    const authProvider = {
+      clientId: '',
+      getAccessTokenForUser: async () => ({
+        accessToken,
+        refreshToken: null,
+        expiresIn: null,
+        obtainmentTimestamp: Date.now(),
+        scope: []
+      }),
+      getScopesForUser: () => []
+    };
+    const apiClient = new ApiClient({ authProvider: authProvider as any });
     
-    if (!res.ok) {
-        const text = await res.text();
-        console.error('DA API Error (Socket):', res.status, text);
-        throw new Error(`Failed to get socket token: ${res.status}`);
+    // @ts-ignore
+    const user = await apiClient.users.getUser();
+    if (!user) {
+        throw new Error('User not found');
     }
+    const socketToken = await apiClient.users.getSocketConnectionToken(user.id);
     
-    const data = await res.json();
-    console.log('Full /user/oauth response:', JSON.stringify(data, null, 2));
-    console.log('socket_connection_token:', data.data.socket_connection_token);
-    return data.data.socket_connection_token;
+    return socketToken;
   } catch (error) {
     console.error('getSocketToken Error:', error);
     throw error;
   }
 }
 
-// Subscribing to the Private Channels and Obtaining Connection Tokens
-// POST https://www.donationalerts.com/api/v1/centrifuge/subscribe
 export async function getChannelToken(accessToken: string, userId: string, clientId: string) {
-  const channel = `$alerts:donation_${userId}`;
-  
   try {
-      const res = await fetch(`${DA_API_BASE}/centrifuge/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          channels: [channel],
-          client: clientId,
-        }),
-        cache: 'no-store',
-      });
-      
-      if (!res.ok) {
-          const text = await res.text();
-          console.error('DA API Error (Channel Token):', res.status, text);
-          throw new Error(`Failed to get channel token: ${res.status}`);
-      }
-      
-      const data = await res.json();
-      
-      // Response contains array of the subscribed channels and tokens
-      if (data && data.channels && data.channels.length > 0) {
-        return data.channels[0].token;
-      }
-      
-      throw new Error('No channel token returned');
+    const authProvider = {
+      clientId: clientId,
+      getAccessTokenForUser: async () => ({
+        accessToken,
+        refreshToken: null,
+        expiresIn: null,
+        obtainmentTimestamp: Date.now(),
+        scope: []
+      }),
+      getScopesForUser: () => []
+    };
+    const apiClient = new ApiClient({ authProvider: authProvider as any });
+    
+    const channel = await apiClient.centrifugo.subscribeUserToDonationAlertEvents(userId, clientId);
+    return channel.token;
   } catch (error) {
-      console.error('getChannelToken Error:', error);
-      throw error;
+    console.error('getChannelToken Error:', error);
+    throw error;
   }
 }
 
 export async function exchangeCodeForToken(clientId: string, clientSecret: string, code: string, redirectUri: string) {
     try {
         console.log('==== Token Exchange Request ====');
-        console.log('Client ID:', clientId);
-        console.log('Redirect URI:', redirectUri);
-        console.log('Code (first 20 chars):', code.substring(0, 20) + '...');
         
         const params = new URLSearchParams({
             grant_type: 'authorization_code',
@@ -99,7 +85,6 @@ export async function exchangeCodeForToken(clientId: string, clientSecret: strin
         const data = await res.json();
         console.log('✅ Token exchange successful!');
         
-        // Return full token response
         return {
             access_token: data.access_token,
             refresh_token: data.refresh_token,
@@ -148,10 +133,9 @@ export async function refreshAccessToken(
         const data = await res.json();
         console.log('✅ Token refreshed successfully!');
         
-        // Return full token response
         return {
             access_token: data.access_token,
-            refresh_token: data.refresh_token || refreshToken, // Use old refresh token if new one not provided
+            refresh_token: data.refresh_token || refreshToken,
             expires_in: data.expires_in,
             token_type: data.token_type
         };
@@ -172,23 +156,94 @@ export async function checkYoutubeConnection(apiKey: string) {
     }
 }
 
-export async function getUserInfo(accessToken: string) {
-    try {
-        const res = await fetch('https://www.donationalerts.com/api/v1/user/oauth', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-            cache: 'no-store',
-        });
+async function getUserOauthId(accessToken: string): Promise<string> {
+    const res = await fetch('https://www.donationalerts.com/api/v1/user/oauth', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: 'no-store'
+    });
 
-        if (!res.ok) {
-            const text = await res.text();
-            console.error('Get User Info Error:', res.status, text);
-            throw new Error(`Failed to get user info: ${res.status}`);
+    if (!res.ok) {
+        const text = await res.text();
+        console.error('User Info Fetch Error:', res.status, text);
+        throw new Error(`Failed to fetch user info: ${res.status}`);
+    }
+
+    const userData = await res.json();
+    const userId = String(userData.data?.id || userData.id);
+    
+    if (!userId || userId === 'undefined') {
+        throw new Error('Could not extract valid User ID from response');
+    }
+    
+    return userId;
+}
+
+export async function getDonationAlertsConnectionData(accessToken: string, clientId: string = '') {
+    try {
+        console.log('🔄 Fetching DonationAlerts connection data on server...');
+        
+        const userId = await getUserOauthId(accessToken);
+        console.log('✅ User ID resolved:', userId);
+
+        const authProvider = {
+            clientId: clientId,
+            getAccessTokenForUser: async () => ({
+                accessToken,
+                refreshToken: null,
+                expiresIn: null,
+                obtainmentTimestamp: Date.now(),
+                scope: []
+            }),
+            getScopesForUser: () => []
+        };
+        const apiClient = new ApiClient({ authProvider: authProvider as any });
+        
+        const socketToken = await apiClient.users.getSocketConnectionToken(userId);
+
+        let donationData: any;
+        let goalData: any;
+        let pollData: any;
+
+        try {
+            donationData = await apiClient.centrifugo.subscribeUserToDonationAlertEvents(userId, clientId);
+        } catch (e) {
+            console.error('❌ Failed to fetch donation channel token:', e);
+            throw e;
         }
 
-        const data = await res.json();
-        return data.data.id; // Returns user ID
+        try {
+            goalData = await apiClient.centrifugo.subscribeUserToGoalUpdateEvents(userId, clientId);
+        } catch (e) {
+            goalData = { channel: `$goals:goal_${userId}`, token: '' };
+        }
+
+        try {
+            pollData = await apiClient.centrifugo.subscribeUserToPollUpdateEvents(userId, clientId);
+        } catch (e) {
+            pollData = { channel: `$polls:poll_${userId}`, token: '' };
+        }
+        
+        const channelTokens: Record<string, string> = {
+            [donationData.channel]: donationData.token,
+            [goalData.channel]: goalData.token,
+            [pollData.channel]: pollData.token
+        };
+
+        return {
+            userId,
+            socketToken,
+            channelToken: donationData.token,
+            channelTokens
+        };
+    } catch (error) {
+        console.error('getDonationAlertsConnectionData Error:', error);
+        throw error;
+    }
+}
+
+export async function getUserInfo(accessToken: string, _clientId?: string) {
+    try {
+        return await getUserOauthId(accessToken);
     } catch (error) {
         console.error('getUserInfo Error:', error);
         throw error;

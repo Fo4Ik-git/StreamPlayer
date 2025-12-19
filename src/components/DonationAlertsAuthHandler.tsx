@@ -45,7 +45,7 @@ export default function DonationAlertsAuthHandler() {
                     // Fetch user ID automatically
                     try {
                         const { getUserInfo } = await import('@/lib/donationAlertsApi');
-                        const userId = await getUserInfo(tokenResponse.access_token);
+                        const userId = await getUserInfo(tokenResponse.access_token, store.donationAlertsClientId);
                         
                         // Calculate token expiry (current time + expires_in seconds)
                         const expiryTimestamp = Date.now() + (tokenResponse.expires_in * 1000);
