@@ -1,3 +1,4 @@
+'use client'
 import { useStore } from '@/store/useStore';
 import { UserEventsClient } from '@donation-alerts/events';
 import { useEffect, useRef, useState } from 'react';
