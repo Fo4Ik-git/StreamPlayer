@@ -2,7 +2,7 @@
 
 import { checkYoutubeConnection, getSocketToken } from '@/lib/donationAlertsApi';
 import { useStore } from '@/store/useStore';
-import { CheckCircle2, Eye, EyeOff, Loader2, Plus, Save, Settings, X } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Eye, EyeOff, HelpCircle, Loader2, Save, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -10,6 +10,8 @@ export default function SettingsDashboard() {
   const store = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [showSecrets, setShowSecrets] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showYtInstructions, setShowYtInstructions] = useState(false);
   const [newKeyword, setNewKeyword] = useState('');
   
   const [testingYt, setTestingYt] = useState(false);
@@ -86,32 +88,183 @@ export default function SettingsDashboard() {
             </div>
             
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">YouTube API Key</label>
+              <div className="space-y-4 md:col-span-2 border border-zinc-800 p-4 rounded-xl bg-zinc-900/30">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold text-zinc-300">YouTube API Configuration</label>
+                    <p className="text-xs text-zinc-500">Required to search and fetch video metadata.</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowYtInstructions(!showYtInstructions)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        showYtInstructions 
+                        ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/50' 
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                    }`}
+                  >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      {showYtInstructions ? 'Hide Guide' : 'How to get key?'}
+                  </button>
+                </div>
+
+                {showYtInstructions && (
+                    <div className="relative overflow-hidden bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-150 rotate-12 pointer-events-none">
+                            <Settings className="w-24 h-24 text-indigo-500" />
+                        </div>
+                        
+                        <div className="space-y-3 relative">
+                            {[
+                                {
+                                    step: 1,
+                                    text: "Go to",
+                                    link: "Google Cloud Console",
+                                    url: "https://console.cloud.google.com/apis/library/youtube.googleapis.com",
+                                    sub: "Log in with your Google account."
+                                },
+                                {
+                                    step: 2,
+                                    text: "Create a project or select an existing one, then click",
+                                    highlight: "Enable",
+                                    sub: "Make sure 'YouTube Data API v3' is active."
+                                },
+                                {
+                                    step: 3,
+                                    text: "Go to the",
+                                    link: "Credentials",
+                                    url: "https://console.cloud.google.com/apis/credentials",
+                                    text2: "tab and click",
+                                    highlight: "Create Credentials > API key"
+                                },
+                                {
+                                    step: 4,
+                                    text: "Copy your new",
+                                    highlight: "API key",
+                                    sub: "Paste it into the field below and test."
+                                }
+                            ].map((item) => (
+                                <div key={item.step} className="flex gap-3">
+                                    <div className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-400">
+                                        {item.step}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-zinc-300 leading-relaxed">
+                                            {item.text} {item.link && (
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline inline-flex items-center gap-0.5 font-medium">
+                                                    {item.link} <ExternalLink className="w-2.5 h-2.5" />
+                                                </a>
+                                            )}
+                                            {item.text2 && ` ${item.text2}`} {item.highlight && <span className="text-white font-semibold">"{item.highlight}"</span>}
+                                        </p>
+                                        {item.sub && <p className="text-[10px] text-zinc-500 leading-relaxed italic">{item.sub}</p>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex gap-2">
                     <input
                     type={showSecrets ? "text" : "password"}
                     value={store.youtubeApiKey}
                     onChange={(e) => store.setSettings({ youtubeApiKey: e.target.value })}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                    placeholder="AIza..."
+                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-zinc-600"
+                    placeholder="AIzaSy..."
                     />
                     <button 
                         onClick={testYoutube}
                         disabled={testingYt || !store.youtubeApiKey}
-                        className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white p-2 rounded-lg transition-colors"
+                        className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white px-4 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
                         title="Test Connection"
                     >
-                        {testingYt ? <Loader2 className="w-5 h-5 animate-spin"/> : <CheckCircle2 className="w-5 h-5" />}
+                        {testingYt ? <Loader2 className="w-4 h-4 animate-spin"/> : <CheckCircle2 className="w-4 h-4" />}
+                        Test
                     </button>
                 </div>
               </div>
               
               {/* DonationAlerts OAuth Section */}
               <div className="space-y-2 md:col-span-2 grid md:grid-cols-2 gap-4 border border-zinc-800 p-4 rounded-xl bg-zinc-900/30">
-                  <div className="md:col-span-2">
-                      <h4 className="text-sm font-semibold text-zinc-300 mb-2">DonationAlerts Authorization</h4>
-                      <p className="text-xs text-zinc-500 mb-4">Enter your Client ID and Secret to connect. You will be redirected to approve access.</p>
+                  <div className="md:col-span-2 space-y-4">
+                      <div className="flex justify-between items-start">
+                          <div>
+                              <h4 className="text-sm font-semibold text-zinc-300">DonationAlerts Authorization</h4>
+                              <p className="text-xs text-zinc-500">Connect your account to receive donations and alerts.</p>
+                          </div>
+                          <button 
+                            onClick={() => setShowInstructions(!showInstructions)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                showInstructions 
+                                ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/50' 
+                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                            }`}
+                          >
+                              <HelpCircle className="w-3.5 h-3.5" />
+                              {showInstructions ? 'Hide Guide' : 'How to get credentials?'}
+                          </button>
+                      </div>
+
+                      {showInstructions && (
+                          <div className="relative overflow-hidden bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                              <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-150 rotate-12 pointer-events-none">
+                                  <HelpCircle className="w-24 h-24 text-indigo-500" />
+                              </div>
+                              
+                              <div className="space-y-3 relative">
+                                  {[
+                                      {
+                                          step: 1,
+                                          text: "Go to your",
+                                          link: "DonationAlerts Applications",
+                                          url: "https://www.donationalerts.com/application/clients",
+                                          sub: "You may need to log in first."
+                                      },
+                                      {
+                                          step: 2,
+                                          text: "Click",
+                                          highlight: "Create New Application",
+                                          sub: "Fill in the name and description as you like."
+                                      },
+                                      {
+                                          step: 3,
+                                          text: "Set",
+                                          highlight: "Redirect URI",
+                                          code: `${window.location.protocol}//${window.location.host}`,
+                                          sub: "This is required for the application to work."
+                                      },
+                                      {
+                                          step: 4,
+                                          text: "Click",
+                                          highlight: "Save",
+                                          sub: "Copy the Client ID and Client Secret from the next screen."
+                                      }
+                                  ].map((item) => (
+                                      <div key={item.step} className="flex gap-3">
+                                          <div className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-[10px] font-bold text-indigo-400">
+                                              {item.step}
+                                          </div>
+                                          <div className="space-y-1">
+                                              <p className="text-xs text-zinc-300 leading-relaxed">
+                                                  {item.text} {item.link && (
+                                                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline inline-flex items-center gap-0.5 font-medium">
+                                                          {item.link} <ExternalLink className="w-2.5 h-2.5" />
+                                                      </a>
+                                                  )}
+                                                  {item.highlight && <span className="text-white font-semibold">"{item.highlight}"</span>}
+                                                  {item.code && (
+                                                      <code className="mx-1 px-1.5 py-0.5 bg-zinc-950 border border-zinc-800 rounded text-[10px] font-mono text-indigo-300">
+                                                          {item.code}
+                                                      </code>
+                                                  )}
+                                              </p>
+                                              <p className="text-[10px] text-zinc-500 leading-relaxed italic">{item.sub}</p>
+                                          </div>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                      )}
                   </div>
 
                   <div className="space-y-2">
@@ -134,7 +287,7 @@ export default function SettingsDashboard() {
                        placeholder="Secret..."
                     />
                   </div>
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-400">DonationAlerts User ID</label>
                     <input
                       type={showSecrets ? "text" : "password"}
@@ -143,7 +296,7 @@ export default function SettingsDashboard() {
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                       placeholder="12345"
                     />
-                  </div>
+                  </div> */}
                   
                   <div className="md:col-span-2 flex items-center justify-between mt-2">
                        <div className="text-xs text-zinc-500">
@@ -168,7 +321,7 @@ export default function SettingsDashboard() {
                   </div>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-400">Donation X API Key</label>
                 <input
                    type={showSecrets ? "text" : "password"}
@@ -177,7 +330,7 @@ export default function SettingsDashboard() {
                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                    placeholder="Key..."
                 />
-              </div>
+              </div> */}
             </div>
           </section>
 
@@ -220,7 +373,7 @@ export default function SettingsDashboard() {
           <div className="h-px bg-zinc-800" />
 
           {/* Blacklist Section */}
-          <section className="space-y-4">
+          {/* <section className="space-y-4">
              <h3 className="text-lg font-semibold text-zinc-200">Blacklisted Keywords</h3>
              <div className="flex gap-2">
                <input 
@@ -260,7 +413,7 @@ export default function SettingsDashboard() {
                  <p className="text-sm text-zinc-600 italic">No blacklisted keywords.</p>
                )}
              </div>
-          </section>
+          </section> */}
         </div>
 
         <div className="p-6 border-t border-zinc-800 flex justify-end">
