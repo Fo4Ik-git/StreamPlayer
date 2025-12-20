@@ -1,6 +1,7 @@
 # StreamPlayer
 
 A modern streaming tool that integrates DonationAlerts with a YouTube video player queue. Built with React, Vite, and Python (Eel).
+![alt text](screen.jpg)
 
 ## Features
 
