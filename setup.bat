@@ -36,6 +36,7 @@ if exist "package.json" (
 echo ✅ Setup complete!
 echo.
 echo To start the application:
+echo 1. Create venv: python -m venv .venv
 echo 1. Activate venv: .venv\Scripts\activate
 echo 2. Run: pip install eel
 echo 3. Run: npm run start
