@@ -2,3 +2,4 @@ eel
 requests
 websocket-client
 pyinstaller
+setuptools

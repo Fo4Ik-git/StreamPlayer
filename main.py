@@ -236,7 +236,22 @@ try:
     
     # Если используете 'chrome', Eel создаст апп-окно. 
     # Если 'None', открывайте http://localhost:8080 вручную.
-    eel.start('index.html', mode='chrome', **eel_kwargs)
+
+    browser_modes = ['chrome', 'edge', 'default']
+
+    # Check if mode chrome is available
+    for mode in browser_modes:
+        try:
+            print(f"[*] Попытка запуска в режиме: {mode}")
+            eel.start('index.html', mode=mode, **eel_kwargs)
+            started = True
+            break  # Если запустилось, выходим из цикла
+        except Exception as e:
+            print(f"[!] Режим {mode} недоступен: {e}")
+            continue
+
+    if not started:
+        logger.error("Ни один из браузеров не смог запуститься.")
     
 except (SystemExit, KeyboardInterrupt):
     logger.info("Приложение штатно остановлено.")

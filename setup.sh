@@ -15,7 +15,7 @@ else
 fi
 
 # Activate virtual environment
-source .venv/bin/activate
+# source .venv/bin/activate
 
 # 2. Install Python Dependencies
 echo "📦 Installing Python dependencies..."
@@ -40,4 +40,5 @@ echo "✅ Setup complete!"
 echo ""
 echo "To start the application:"
 echo "1. Activate venv: source .venv/bin/activate"
-echo "2. Run: npm run start"
+echo "2. Run: pip install eel"
+echo "3. Run: npm run start

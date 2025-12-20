@@ -7,6 +7,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build on ${{ matrix.os }}
@@ -68,3 +71,55 @@ jobs:
       with:
         name: StreamPlayer-Linux
         path: dist/StreamPlayer
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Push to builds branch
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        
+        # Fetch and switch to builds branch
+        git fetch origin builds || true
+        if git rev-parse --verify origin/builds >/dev/null 2>&1; then
+          git checkout builds
+        else
+          git checkout --orphan builds
+          git rm -rf .
+        fi
+        
+        mkdir -p windows macos linux
+        
+        # Copy Windows artifact
+        if [ -f artifacts/StreamPlayer-Windows/StreamPlayer.exe ]; then
+          cp artifacts/StreamPlayer-Windows/StreamPlayer.exe windows/
+        fi
+        
+        # Copy macOS artifact
+        if [ -d artifacts/StreamPlayer-macOS/StreamPlayer.app ]; then
+          rm -rf macos/StreamPlayer.app
+          cp -r artifacts/StreamPlayer-macOS/StreamPlayer.app macos/
+        fi
+        
+        # Copy Linux artifact
+        if [ -f artifacts/StreamPlayer-Linux/StreamPlayer ]; then
+          cp artifacts/StreamPlayer-Linux/StreamPlayer linux/
+        fi
+        
+        git add windows macos linux
+        
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update builds: ${{ github.sha }}"
+          git push origin builds
+        fi
