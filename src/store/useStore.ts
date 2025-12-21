@@ -27,10 +27,12 @@ interface SettingsState {
   minLikeCount: number;
   blacklistedKeywords: string[];
   daConnectionStatus: 'connected' | 'disconnected' | 'connecting';
+  theme: 'dark' | 'light';
   setSettings: (settings: Partial<SettingsState>) => void;
   addBlacklistedKeyword: (keyword: string) => void;
   removeBlacklistedKeyword: (keyword: string) => void;
   setDAConnectionStatus: (status: 'connected' | 'disconnected' | 'connecting') => void;
+  setTheme: (theme: 'dark' | 'light') => void;
 }
 
 interface QueueState {
@@ -69,6 +71,7 @@ export const useStore = create<AppState>()(
       minLikeCount: 10000,
       blacklistedKeywords: [],
       daConnectionStatus: 'disconnected',
+      theme: 'dark',
 
       // Queue Initial State
       queue: [],
@@ -93,6 +96,8 @@ export const useStore = create<AppState>()(
       
       setDAConnectionStatus: (status) => set({ daConnectionStatus: status }),
       
+      setTheme: (theme) => set({ theme }),
+
       addBlacklistedKeyword: (keyword) => 
         set((state) => ({ 
           blacklistedKeywords: [...state.blacklistedKeywords, keyword] 

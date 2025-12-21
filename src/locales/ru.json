@@ -1,0 +1,61 @@
+{
+  "app": {
+    "title": "StreamPlayer",
+    "version": "v1.0 - Бета",
+    "waiting_eel": "Ожидание бэкенда...",
+    "eel_ready": "Бэкенд подключен",
+    "eel_failed": "Ошибка загрузки бэкенда"
+  },
+  "status": {
+    "connected": "Подключено",
+    "connecting": "Подключение...",
+    "disconnected": "Отключено"
+  },
+  "player": {
+    "nothing_playing": "Ничего не воспроизводится",
+    "requested_by": "Заказал",
+    "waiting": "Ожидание видео...",
+    "waiting_sub": "Донаты появятся здесь автоматически"
+  },
+  "queue": {
+    "title": "Очередь",
+    "empty": "Очередь пуста",
+    "clear": "Очистить",
+    "add_url": "Добавить ссылку YouTube"
+  },
+  "settings": {
+    "title": "Панель управления",
+    "save": "Сохранить настройки",
+    "saved": "Настройки сохранены",
+    "api_config": "Настройка API",
+    "appearance": "Внешний вид",
+    "client_id": "Client ID",
+    "client_secret": "Client Secret",
+    "user_id": "DonationAlerts User ID",
+    "connect_da": "Подключить DonationAlerts",
+    "filters": "Фильтры и Пороги",
+    "min_donation": "Мин. сумма доната",
+    "min_views": "Мин. просмотров YouTube",
+    "min_likes": "Мин. лайков YouTube",
+    "blacklist": "Запрещенные слова",
+    "add_keyword": "Добавить слово",
+    "theme": "Тема",
+    "language": "Язык",
+    "dark": "Темная",
+    "light": "Светлая"
+  },
+  "notifications": {
+    "test_donation": "Тестовый донат: {{username}} - {{amount}} {{currency}}",
+    "new_donation": "Новый донат: {{username}} - {{amount}} {{currency}}",
+    "video_added": "Видео добавлено в очередь: {{title}}",
+    "video_rejected_views": "Видео отклонено: Мало просмотров ({{current}} < {{min}})",
+    "video_rejected_likes": "Видео отклонено: Мало лайков ({{current}} < {{min}})",
+    "video_rejected_blacklist": "Видео отклонено: Запрещенное слово в названии",
+    "video_not_found": "Видео не найдено на YouTube",
+    "missing_api_key": "Не настроен YouTube API Key",
+    "processing_error": "Ошибка при обработке видео",
+    "invalid_url": "Неверная ссылка на YouTube",
+    "fetch_error": "Ошибка получения данных с YouTube",
+    "unexpected_error": "Непредвиденная ошибка валидации"
+  }
+}

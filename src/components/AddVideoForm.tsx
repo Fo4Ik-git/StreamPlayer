@@ -2,10 +2,12 @@
 
 import { AlertCircle, Loader2, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useYoutubeValidator } from '../hooks/useYoutubeValidator';
 import { useStore } from '../store/useStore';
 
 export default function AddVideoForm() {
+    const { t } = useTranslation();
     const [url, setUrl] = useState('');
     const [error, setError] = useState<string | null>(null);
     const { validateVideo, isValidating } = useYoutubeValidator();
@@ -33,24 +35,24 @@ export default function AddVideoForm() {
     };
 
     return (
-        <div className="bg-zinc-900/50 p-4 border-b border-zinc-800">
+        <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 border-b border-zinc-200 dark:border-zinc-800">
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder="Paste YouTube URL here..."
+                        placeholder={t('queue.add_url')}
                         value={url}
                         onChange={(e) => {
                             setUrl(e.target.value);
                             if (error) setError(null);
                         }}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 pr-10 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 pr-10 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors"
                         disabled={isValidating}
                     />
                     <button
                         type="submit"
                         disabled={isValidating || !url.trim()}
-                        className="absolute right-1 top-1 bottom-1 px-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded transition-colors flex items-center justify-center min-w-[32px]"
+                        className="absolute right-1 top-1 bottom-1 px-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-500 text-white rounded transition-colors flex items-center justify-center min-w-[32px]"
                     >
                         {isValidating ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -60,7 +62,7 @@ export default function AddVideoForm() {
                     </button>
                 </div>
                 {error && (
-                    <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
+                    <div className="flex items-center gap-1.5 text-red-500 dark:text-red-400 text-xs mt-1">
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span>{error}</span>
                     </div>

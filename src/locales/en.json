@@ -1,0 +1,61 @@
+{
+  "app": {
+    "title": "StreamPlayer",
+    "version": "v1.0 - Beta",
+    "waiting_eel": "Waiting for backend...",
+    "eel_ready": "Backend connected",
+    "eel_failed": "Backend failed to load"
+  },
+  "status": {
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "disconnected": "Disconnected"
+  },
+  "player": {
+    "nothing_playing": "Nothing playing",
+    "requested_by": "Requested by",
+    "waiting": "Waiting for video requests...",
+    "waiting_sub": "Donations will appear here automatically"
+  },
+  "queue": {
+    "title": "Queue",
+    "empty": "Queue is empty",
+    "clear": "Clear Queue",
+    "add_url": "Add YouTube URL"
+  },
+  "settings": {
+    "title": "Control Panel",
+    "save": "Save Settings",
+    "saved": "Settings saved successfully",
+    "api_config": "API Configuration",
+    "appearance": "Appearance",
+    "client_id": "Client ID",
+    "client_secret": "Client Secret",
+    "user_id": "DonationAlerts User ID",
+    "connect_da": "Connect DonationAlerts",
+    "filters": "Filters & Thresholds",
+    "min_donation": "Min Donation Amount",
+    "min_views": "Min YouTube View Count",
+    "min_likes": "Min YouTube Likes",
+    "blacklist": "Blacklisted Keywords",
+    "add_keyword": "Add keyword",
+    "theme": "Theme",
+    "language": "Language",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "notifications": {
+    "test_donation": "Test Donation: {{username}} - {{amount}} {{currency}}",
+    "new_donation": "New Donation: {{username}} - {{amount}} {{currency}}",
+    "video_added": "Video added to queue: {{title}}",
+    "video_rejected_views": "Video rejected: Not enough views ({{current}} < {{min}})",
+    "video_rejected_likes": "Video rejected: Not enough likes ({{current}} < {{min}})",
+    "video_rejected_blacklist": "Video rejected: Blacklisted keyword in title",
+    "video_not_found": "Video not found on YouTube",
+    "missing_api_key": "YouTube API Key is missing",
+    "processing_error": "Error processing video",
+    "invalid_url": "Invalid YouTube URL",
+    "fetch_error": "Failed to fetch video details from YouTube",
+    "unexpected_error": "Unexpected validation error"
+  }
+}

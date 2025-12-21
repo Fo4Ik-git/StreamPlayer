@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore, type VideoItem } from '../store/useStore';
 
 interface ValidationResult {
@@ -8,6 +9,7 @@ interface ValidationResult {
 }
 
 export const useYoutubeValidator = () => {
+  const { t } = useTranslation();
   const { youtubeApiKey, minViewCount, minLikeCount, blacklistedKeywords } = useStore();
   const [isValidating, setIsValidating] = useState(false);
 
@@ -21,12 +23,12 @@ export const useYoutubeValidator = () => {
     setIsValidating(true);
     try {
       if (!youtubeApiKey) {
-        return { isValid: false, error: 'Missing YouTube API Key' };
+        return { isValid: false, error: t('notifications.missing_api_key') };
       }
 
       const videoId = extractVideoId(url);
       if (!videoId) {
-        return { isValid: false, error: 'Invalid YouTube URL' };
+        return { isValid: false, error: t('notifications.invalid_url') };
       }
 
       const response = await fetch(
@@ -34,12 +36,12 @@ export const useYoutubeValidator = () => {
       );
 
       if (!response.ok) {
-        return { isValid: false, error: 'Failed to fetch video details from YouTube' };
+        return { isValid: false, error: t('notifications.fetch_error') };
       }
 
       const data = await response.json();
       if (!data.items || data.items.length === 0) {
-        return { isValid: false, error: 'Video not found' };
+        return { isValid: false, error: t('notifications.video_not_found') };
       }
 
       const video = data.items[0];
@@ -55,14 +57,14 @@ export const useYoutubeValidator = () => {
       if (viewCount < minViewCount) {
         return { 
           isValid: false, 
-          error: `Not enough views. (${viewCount.toLocaleString()} < ${minViewCount.toLocaleString()})` 
+          error: t('notifications.video_rejected_views', { current: viewCount.toLocaleString(), min: minViewCount.toLocaleString() })
         };
       }
 
       if (likeCount < minLikeCount) {
         return { 
           isValid: false, 
-          error: `Not enough likes. (${likeCount.toLocaleString()} < ${minLikeCount.toLocaleString()})` 
+          error: t('notifications.video_rejected_likes', { current: likeCount.toLocaleString(), min: minLikeCount.toLocaleString() })
         };
       }
 
@@ -71,7 +73,7 @@ export const useYoutubeValidator = () => {
       );
 
       if (isBlacklisted) {
-        return { isValid: false, error: 'Title contains blacklisted keywords' };
+        return { isValid: false, error: t('notifications.video_rejected_blacklist') };
       }
 
       return {
@@ -87,7 +89,7 @@ export const useYoutubeValidator = () => {
 
     } catch (error) {
         console.error("Validation Error", error);
-        return { isValid: false, error: 'Unexpected validation error' };
+        return { isValid: false, error: t('notifications.unexpected_error') };
     } finally {
       setIsValidating(false);
     }

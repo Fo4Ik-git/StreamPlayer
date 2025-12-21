@@ -1,10 +1,11 @@
 'use client';
 
 import {
-  MediaPlayer,
-  MediaProvider,
-  type MediaPlayerInstance
+    MediaPlayer,
+    MediaProvider,
+    type MediaPlayerInstance
 } from '@vidstack/react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/useStore';
 
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
@@ -15,6 +16,7 @@ import '@vidstack/react/player/styles/default/layouts/video.css';
 import '@vidstack/react/player/styles/default/theme.css';
 
 export default function Player() {
+  const { t } = useTranslation();
   const playerRef = useRef<MediaPlayerInstance>(null);
   const { 
     currentVideo, 
@@ -64,19 +66,19 @@ export default function Player() {
 
   if (!currentVideo) {
     return (
-      <div className="w-full h-full bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center justify-center text-zinc-500 gap-4">
-        <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center animate-pulse">
-          <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[20px] border-l-zinc-700 border-b-[10px] border-b-transparent ml-1" />
+      <div className="w-full h-full bg-zinc-100 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400 gap-4">
+        <div className="w-20 h-20 rounded-full bg-zinc-200 dark:bg-zinc-900 flex items-center justify-center animate-pulse">
+          <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[20px] border-l-zinc-400 dark:border-l-zinc-700 border-b-[10px] border-b-transparent ml-1" />
         </div>
-        <p className="font-medium">Waiting for video requests...</p>
-        <p className="text-sm opacity-50">Donations will appear here automatically</p>
+        <p className="font-medium">{t('player.waiting')}</p>
+        <p className="text-sm opacity-50">{t('player.waiting_sub')}</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4 h-full">
-        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-2xl group">
+        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-2xl group">
           <MediaPlayer
             key={currentVideo.queueId}
             ref={playerRef}
@@ -150,10 +152,10 @@ export default function Player() {
         </div>
 
         {/* Custom Mini Control Bar (Persistent sync with store) */}
-        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl space-y-4">
+        <div className="space-y-4 md:col-span-2 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/30">
             <div className="flex justify-between items-start gap-4">
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-white line-clamp-1">{currentVideo.title}</h3>
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-300 line-clamp-1">{currentVideo.title}</h3>
                     <p className="text-zinc-400 text-sm mt-1">
                         Requested by <span className="text-indigo-400 font-medium">{currentVideo.requester}</span> 
                         {currentVideo.amount > 0 && ` • contributed ${currentVideo.amount}`}

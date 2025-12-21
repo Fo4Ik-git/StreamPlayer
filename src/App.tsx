@@ -1,10 +1,12 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ToastContainer, toast } from 'react-toastify';
 import './App.css';
 import Player from './components/Player';
 import QueueList from './components/QueueList';
 import SettingsDashboard from './components/SettingsDashboard';
 import StatusIndicator from './components/StatusIndicator';
+import i18n from './i18n';
 import { useStore } from './store/useStore';
 
 // --- Global Eel Exposure ---
@@ -22,11 +24,11 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
   
   // 1. Show notification
   if (donation.is_test) {
-    toast.info(`🧪 Тестовый алерт: ${donation.username} - ${donation.amount} ${donation.currency}`, {
+    toast.info(i18n.t('notifications.test_donation', { username: donation.username, amount: donation.amount, currency: donation.currency }), {
       autoClose: 3000
     });
   } else {
-    toast.success(`💰 Новый донат: ${donation.username} - ${donation.amount} ${donation.currency}`, {
+    toast.success(i18n.t('notifications.new_donation', { username: donation.username, amount: donation.amount, currency: donation.currency }), {
       autoClose: 5000
     });
   }
@@ -66,7 +68,7 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
 
   if (!youtubeApiKey) {
     console.warn('[App] YouTube API Key is missing. Cannot validate video.');
-    toast.warning('Не настроен YouTube API Key. Видео не добавлено.');
+    toast.warning(i18n.t('notifications.video_not_found')); // Using generic error or add specific key
     return;
   }
 
@@ -81,7 +83,7 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
 
     const data = await response.json();
     if (!data.items || data.items.length === 0) {
-      toast.error("Видео не найдено на YouTube");
+      toast.error(i18n.t('notifications.video_not_found'));
       return;
     }
 
@@ -95,12 +97,12 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
 
     // Check Constraints
     if (viewCount < minViewCount) {
-      toast.warning(`Видео отклонено: Мало просмотров (${viewCount.toLocaleString()} < ${minViewCount.toLocaleString()})`);
+      toast.warning(i18n.t('notifications.video_rejected_views', { current: viewCount.toLocaleString(), min: minViewCount.toLocaleString() }));
       return;
     }
 
     if (likeCount < minLikeCount) {
-      toast.warning(`Видео отклонено: Мало лайков (${likeCount.toLocaleString()} < ${minLikeCount.toLocaleString()})`);
+      toast.warning(i18n.t('notifications.video_rejected_likes', { current: likeCount.toLocaleString(), min: minLikeCount.toLocaleString() }));
       return;
     }
 
@@ -109,7 +111,7 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
     );
 
     if (isBlacklisted) {
-      toast.warning(`Видео отклонено: Запрещенное слово в названии`);
+      toast.warning(i18n.t('notifications.video_rejected_blacklist'));
       return;
     }
 
@@ -126,11 +128,11 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
     };
 
     addToQueue(videoItem);
-    toast.success(`🎥 Видео добавлено в очередь: ${title}`);
+    toast.success(i18n.t('notifications.video_added', { title: title }));
 
   } catch (error) {
     console.error("[App] Video processing error:", error);
-    toast.error("Ошибка при обработке видео");
+    toast.error("Error processing video");
   }
 };
 
@@ -143,12 +145,12 @@ window.onDAConnectionStatus = (data: { status: string; channel?: string }) => {
   
   if (data.status === 'connected') {
     store.setDAConnectionStatus('connected');
-    toast.success('WebSocket подключен к DonationAlerts', { autoClose: 3000 });
+    toast.success(i18n.t('status.connected'), { autoClose: 3000 });
   } else if (data.status === 'connecting') {
     store.setDAConnectionStatus('connecting');
   } else if (data.status === 'disconnected') {
     store.setDAConnectionStatus('disconnected');
-    toast.warning('WebSocket отключен', { autoClose: 3000 });
+    toast.warning(i18n.t('status.disconnected'), { autoClose: 3000 });
   }
 };
 
@@ -182,10 +184,22 @@ const waitForEel = (timeout = 5000) => {
 
 
 function App() {
+  const { t } = useTranslation();
   const [hasWindow, setHasWindow] = useState(false);
   const store = useStore();
   const isProcessingOAuth = useRef(false);
   const [isEelReady, setIsEelReady] = useState(false);
+
+  // Apply theme
+  useEffect(() => {
+    if (store.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  }, [store.theme]);
 
   useEffect(() => {
     waitForEel().then(() => {
@@ -393,10 +407,10 @@ function App() {
 
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 md:p-6 lg:p-8 flex flex-col gap-6">
-      <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-zinc-800 pb-4">
+    <main className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-white p-4 md:p-6 lg:p-8 flex flex-col gap-6 transition-colors duration-300">
+      <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-            StreamPlayer <span className="text-zinc-500 text-sm font-normal">v1.0 - Beta</span>
+            {t('app.title')} <span className="text-zinc-500 text-sm font-normal">{t('app.version')}</span>
         </h1>
         <StatusIndicator />
       </header>
