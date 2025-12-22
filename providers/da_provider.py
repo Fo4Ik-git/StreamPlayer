@@ -1,8 +1,8 @@
-import eel
 import requests
 import json
 import logging
 from threading import Thread
+import eel
 import time
 
 try:
@@ -24,6 +24,7 @@ class DonationAlertsProvider:
         self.ws = None
         self.ws_thread = None
         self.is_connected = False
+        self.user_name = "Unknown"
 
     def log(self, message, level="info"):
         prefix = "[PYTHON] [DA_PROVIDER]"
@@ -135,6 +136,73 @@ class DonationAlertsProvider:
                 self.log(f"⚠️ UI function '{function_name}' NOT found in eel module. Is the browser connected?", "warning")
         except Exception as e:
             self.log(f"Error calling {function_name}: {e}", "warning")
+            
+    def start_auth_thread(self, credentials):
+        """Launches OAuth process in a thread"""
+        cid = credentials.get('client_id', 'unknown')
+        self.log(f"Launch OAuth for ID: {cid}")
+
+        auth_thread = Thread(
+            target=self.auth, 
+            args=(credentials['client_id'], credentials['client_secret']),
+            daemon=True
+        )
+        auth_thread.start()
+
+    def connect_with_token(self, access_token, refresh_token, client_id, client_secret):
+        """
+        Подключается к DonationAlerts с существующим токеном
+        Вызывается из React при загрузке страницы, если токен уже есть в store
+        """
+        self.log("="*60, "info")
+        self.log("connect_with_token ВЫЗВАНА!", "info")
+        self.log(f"Has Access Token: {bool(access_token)}", "info")
+        self.log(f"Has Refresh Token: {bool(refresh_token)}", "info")
+        self.log(f"Client ID: {client_id}", "info")
+        self.log("="*60, "info")
+        
+        try:
+            # Устанавливаем токены в провайдер
+            self.access_token = access_token
+            self.refresh_token = refresh_token
+            self.client_id = client_id
+            self.client_secret = client_secret
+            
+            # Проверяем валидность токена
+            if self._fetch_user_info():
+                self.log(f"Token valid for user: {self.user_name}", "info")
+                
+                # Запускаем WebSocket
+                self._start_websocket()
+                
+                return {
+                    'success': True,
+                    'message': 'Connected with existing token',
+                    'user_name': self.user_name,
+                    'user_id': self.user_id
+                }
+            else:
+                self.logger.error("Token is invalid or expired")
+                return {
+                    'success': False,
+                    'message': 'Token is invalid or expired'
+                }
+            
+        except Exception as e:
+            self.logger.error(f"Error connecting with token: {e}")
+            return {
+                'success': False,
+                'message': str(e)
+            }
+
+    def get_status(self):
+        """Returns current connection status"""
+        status = 'connected' if self.is_connected else 'disconnected'
+        # Если поток запущен но еще не connected, значит connecting
+        if self.ws_thread and self.ws_thread.is_alive() and not self.is_connected:
+            status = 'connecting'
+        return {'status': status}
+
 
     def _websocket_loop(self):
         time.sleep(1.0)
@@ -285,3 +353,31 @@ class DonationAlertsProvider:
         # Keep existing test logic but use new log method
         self.log("Testing connection...", "info")
         return {"success": True, "message": "Ready to connect"} # Simplified for now
+
+provider_logger = logging.getLogger("DA_PROVIDER")
+da_provider = DonationAlertsProvider(logger=provider_logger)
+
+@eel.expose
+def exchange_da_code(code, client_id, client_secret, redirect_uri=None):
+    return da_provider.exchange_code_for_token(code, client_id, client_secret, redirect_uri)
+
+@eel.expose
+def connect_with_token(access_token, refresh_token, client_id, client_secret):
+    return da_provider.connect_with_token(access_token, refresh_token, client_id, client_secret)
+
+@eel.expose
+def get_da_status():
+    return da_provider.get_status()
+
+@eel.expose
+def start_da_auth(credentials):
+    Thread(target=da_provider.start_auth_thread, args=(credentials,), daemon=True).start()
+
+@eel.expose
+def test_da_connection(credentials):
+    return da_provider.test_connection(
+        credentials.get('client_id'), 
+        credentials.get('client_secret'), 
+        credentials.get('access_token')
+    )
+        
