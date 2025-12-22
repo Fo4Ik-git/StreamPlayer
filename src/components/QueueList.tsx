@@ -1,19 +1,19 @@
 'use client';
 
 import {
-    closestCenter,
-    DndContext,
-    type DragEndEvent,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
 import {
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { ListVideo, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -66,7 +66,7 @@ export default function QueueList() {
       
       <AddVideoForm />
       
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+      <div className="flex-1 overflow-y-auto min-h-0 max-h-[calc(100vh-300px)] p-2 space-y-2 custom-scrollbar">
         {queue.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400 gap-2 opacity-50">
                 <ListVideo className="w-10 h-10" />

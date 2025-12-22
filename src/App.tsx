@@ -7,19 +7,17 @@ import QueueList from './components/QueueList';
 import SettingsDashboard from './components/SettingsDashboard';
 import StatusIndicator from './components/StatusIndicator';
 import i18n from './i18n';
+import { addYoutubeVideoToQueue } from './lib/apiYoutube';
 import { useStore } from './store/useStore';
+import type { Donation } from './lib/interfaces';
 
 // --- Global Eel Exposure ---
 
-const extractVideoId = (url: string): string | null => {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
+
 
 // Define callbacks globally so Eel can find them during initialization
 // @ts-ignore
-window.onNewDonation = async (donation: { username: string; amount: number; currency: string; message: string; id: number; timestamp: string; is_test?: boolean }) => {
+window.onNewDonation = async (donation: Donation) => {
   console.log('[App] 💰 New donation received:', donation);
   
   // 1. Show notification
@@ -33,107 +31,7 @@ window.onNewDonation = async (donation: { username: string; amount: number; curr
     });
   }
 
-  // 2. Process Video Request
-  const store = useStore.getState();
-  const { youtubeApiKey, minDonationAmount, minViewCount, minLikeCount, blacklistedKeywords, addToQueue } = store;
-
-  // Check if message exists
-  if (!donation.message) return;
-
-  // Check minimum donation amount for video request
-  if (donation.amount < minDonationAmount) {
-    console.log(`[App] Donation amount ${donation.amount} is less than minimum ${minDonationAmount} for video request.`);
-    return;
-  }
-
-  // Find YouTube URL
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const urls = donation.message.match(urlRegex);
-  
-  if (!urls) return;
-
-  let videoId = null;
-
-  for (const url of urls) {
-    const id = extractVideoId(url);
-    if (id) {
-      videoId = id;
-      break; // Take the first valid YouTube link
-    }
-  }
-
-  if (!videoId) return;
-
-  console.log(`[App] Found YouTube Video ID: ${videoId}. Validating...`);
-
-  if (!youtubeApiKey) {
-    console.warn('[App] YouTube API Key is missing. Cannot validate video.');
-    toast.warning(i18n.t('notifications.video_not_found')); // Using generic error or add specific key
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoId}&key=${youtubeApiKey}`
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch video details");
-    }
-
-    const data = await response.json();
-    if (!data.items || data.items.length === 0) {
-      toast.error(i18n.t('notifications.video_not_found'));
-      return;
-    }
-
-    const video = data.items[0];
-    const stats = video.statistics;
-    const snippet = video.snippet;
-
-    const viewCount = parseInt(stats.viewCount || '0', 10);
-    const likeCount = parseInt(stats.likeCount || '0', 10);
-    const title = snippet.title;
-
-    // Check Constraints
-    if (viewCount < minViewCount) {
-      toast.warning(i18n.t('notifications.video_rejected_views', { current: viewCount.toLocaleString(), min: minViewCount.toLocaleString() }));
-      return;
-    }
-
-    if (likeCount < minLikeCount) {
-      toast.warning(i18n.t('notifications.video_rejected_likes', { current: likeCount.toLocaleString(), min: minLikeCount.toLocaleString() }));
-      return;
-    }
-
-    const isBlacklisted = blacklistedKeywords.some(keyword => 
-      title.toLowerCase().includes(keyword.toLowerCase())
-    );
-
-    if (isBlacklisted) {
-      toast.warning(i18n.t('notifications.video_rejected_blacklist'));
-      return;
-    }
-
-    // Add to Queue
-    const videoItem = {
-      id: videoId,
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      title: title,
-      requester: donation.username,
-      amount: donation.amount,
-      duration: video.contentDetails.duration,
-      thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
-      addedAt: Date.now()
-    };
-
-    addToQueue(videoItem);
-    toast.success(i18n.t('notifications.video_added', { title: title }));
-
-  } catch (error) {
-    console.error("[App] Video processing error:", error);
-    toast.error("Error processing video");
-  }
+  await addYoutubeVideoToQueue(donation);
 };
 
 // @ts-ignore
@@ -212,113 +110,6 @@ function App() {
     });
   }, []);
 
-  // useEffect(() => {
-  //   console.log('[App] Component mounted');
-  //   const timer = setTimeout(() => {
-  //     console.log('[App] Setting hasWindow to true');
-  //     setHasWindow(true);
-      
-  //     // Проверяем window.eel
-  //     setTimeout(() => {
-  //       console.log('[App] Checking window.eel availability...');
-  //       console.log('[App] window.eel exists:', !!window.eel);
-  //       if (window.eel) {
-  //         console.log('[App] ✅ window.eel is available');
-  //         console.log('[App] window.eel.exchange_da_code:', typeof window.eel.exchange_da_code);
-  //       } else {
-  //         console.error('[App] ❌ window.eel is NOT available!');
-  //       }
-  //     }, 100);
-  //   }, 0);
-  //   return () => clearTimeout(timer);
-  // }, []);
-
-  // Обработка OAuth code из URL - ОДИН раз при загрузке
-  // useEffect(() => {
-  //   if (!hasWindow) return;
-    
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const code = urlParams.get('code');
-    
-  //   // Если нет code или уже обрабатываем - выход
-  //   if (!code || isProcessingOAuth.current) {
-  //     return;
-  //   }
-    
-  //   // Помечаем что начали обработку
-  //   isProcessingOAuth.current = true;
-    
-  //   const logPrefix = '[VITE] [APP] [OAuth]';
-  //   console.log(`${logPrefix} 🔄 Code detected: ${code.substring(0, 10)}...`);
-    
-  //   const handleOAuthCallback = async () => {
-  //     // Ждем window.eel
-  //     let attempts = 0;
-  //     while (!window.eel && attempts < 20) { // Increased attempts
-  //       console.log(`${logPrefix} Waiting for window.eel... (${attempts + 1}/20)`);
-  //       await new Promise(resolve => setTimeout(resolve, 250));
-  //       attempts++;
-  //     }
-      
-  //     if (!window.eel) {
-  //       console.error(`${logPrefix} ❌ window.eel NOT found! Are you running via Python?`);
-  //       toast.error('Ошибка: Eel не загружен. Запустите через python main.py');
-  //       isProcessingOAuth.current = false;
-  //       return;
-  //     }
-      
-  //     console.log(`${logPrefix} ✅ window.eel is ready`);
-      
-  //     const clientId = store.donationAlertsClientId;
-  //     const clientSecret = store.donationAlertsClientSecret;
-      
-  //     if (!clientId || !clientSecret) {
-  //       console.error(`${logPrefix} ❌ Missing credentials in Store!`);
-  //       toast.error('Введите Client ID и Secret в настройках');
-  //       isProcessingOAuth.current = false;
-  //       return;
-  //     }
-      
-  //     console.log(`${logPrefix} 📞 Calling Python exchange_da_code...`);
-  //     toast.info('Обмен кода на токен...');
-      
-  //     try {
-  //       const redirectUri = `${window.location.protocol}//${window.location.host}`;
-  //       const result = await window.eel.exchange_da_code(code, clientId, clientSecret, redirectUri)();
-        
-  //       console.log(`${logPrefix} 📦 Result from Python:`, result);
-        
-  //       if (result.success && result.access_token) {
-  //         console.log(`${logPrefix} ✅ Token exchange successful!`);
-          
-  //         // Сохраняем в store
-  //         store.setSettings({
-  //           donationAlertsToken: result.access_token,
-  //           donationAlertsRefreshToken: result.refresh_token || '',
-  //           donationAlertsTokenExpiry: Date.now() + (result.expires_in || 3600) * 1000,
-  //           donationAlertsUserId: String(result.user_id || '')
-  //         });
-          
-  //         toast.success(`✅ Подключено: ${result.user_name}`);
-          
-  //         // Убираем code из URL
-  //         window.history.replaceState({}, document.title, window.location.pathname);
-  //         console.log(`${logPrefix} 🧹 Code removed from URL`);
-  //       } else {
-  //         console.error(`${logPrefix} ❌ Exchange failed:`, result.message);
-  //         toast.error(result.message || 'Ошибка авторизации');
-  //       }
-  //     } catch (error) {
-  //       console.error(`${logPrefix} ❌ Exception:`, error);
-  //       toast.error('Ошибка при обмене кода');
-  //     } finally {
-  //       isProcessingOAuth.current = false;
-  //     }
-  //   };
-    
-  //   handleOAuthCallback();
-  // }, [hasWindow, store]);
-
   useEffect(() => {
     if (!isEelReady || isProcessingOAuth.current) return;
 
@@ -329,7 +120,7 @@ function App() {
       isProcessingOAuth.current = true;
       const handleAuth = async () => {
         try {
-          // Ждем еще немного для регистрации всех экспортов
+          // Wait a bit more to ensure all exports are registered
           await new Promise(r => setTimeout(r, 500));
           
           const clientId = store.donationAlertsClientId;
@@ -357,11 +148,10 @@ function App() {
     }
   }, [isEelReady]);
 
-  // Запрашиваем актуальный статус при подключении
+  // Get current DA connection status on Eel ready
   useEffect(() => {
     if (!isEelReady) return;
 
-    // Запрашиваем актуальный статус
     // @ts-ignore
     window.eel.get_da_status()().then((res: {status: string}) => {
       if (res.status === 'connected') store.setDAConnectionStatus('connected');
@@ -371,11 +161,11 @@ function App() {
 
   }, [isEelReady, store]);
 
-  // Автоматическое подключение при загрузке если токен есть
+  // Auto-connect if token exists
   useEffect(() => {
     if (!hasWindow || !window.eel) return;
     
-    // Если токен уже есть в store, подключаемся автоматически
+    // If tokens exist, auto-connect
     if (store.donationAlertsToken && store.donationAlertsClientId) {
       console.log('[App] 🔄 Token found, auto-connecting...');
       
@@ -392,7 +182,6 @@ function App() {
             console.log('[App] ✅ Auto-connected successfully');
           } else {
             console.warn('[App] ⚠️ Auto-connect failed:', result.message);
-            // Возможно токен истек, не показываем ошибку пользователю
           }
         } catch (error) {
           console.error('[App] ❌ Auto-connect error:', error);

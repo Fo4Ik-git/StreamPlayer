@@ -1,17 +1,16 @@
 'use client';
 
-import { AlertCircle, Loader2, Plus } from 'lucide-react';
+import { AlertCircle, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useYoutubeValidator } from '../hooks/useYoutubeValidator';
-import { useStore } from '../store/useStore';
+import {
+    addYoutubeVideoToQueueManual,
+} from '../lib/apiYoutube';
 
 export default function AddVideoForm() {
     const { t } = useTranslation();
     const [url, setUrl] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const { validateVideo, isValidating } = useYoutubeValidator();
-    const { addToQueue } = useStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,19 +18,9 @@ export default function AddVideoForm() {
 
         if (!url.trim()) return;
 
-        const result = await validateVideo(url);
+        addYoutubeVideoToQueueManual(url);
 
-        if (result.isValid && result.videoDetails) {
-            addToQueue({
-                ...result.videoDetails,
-                requester: 'Admin',
-                amount: 0,
-                addedAt: Date.now()
-            });
-            setUrl('');
-        } else {
-            setError(result.error || 'Failed to add video');
-        }
+        setUrl('');
     };
 
     return (
@@ -47,18 +36,13 @@ export default function AddVideoForm() {
                             if (error) setError(null);
                         }}
                         className="w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 pr-10 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors"
-                        disabled={isValidating}
                     />
                     <button
                         type="submit"
-                        disabled={isValidating || !url.trim()}
+                        disabled={!url.trim()}
                         className="absolute right-1 top-1 bottom-1 px-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-500 text-white rounded transition-colors flex items-center justify-center min-w-[32px]"
                     >
-                        {isValidating ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Plus className="w-4 h-4" />
-                        )}
+                        <Plus className="w-4 h-4" />
                     </button>
                 </div>
                 {error && (
