@@ -1,7 +1,8 @@
 'use client';
 
-// import { checkYoutubeConnection, getSocketToken } from '@/lib/donationAlertsApi';
 import {
+    ArrowDownIcon,
+    ArrowUpIcon,
     CheckCircle2,
     ExternalLink,
     Eye,
@@ -12,7 +13,7 @@ import {
     Save,
     Settings,
     Sun,
-    X
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,10 @@ export default function SettingsDashboard() {
     const [showSecrets, setShowSecrets] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [showYtInstructions, setShowYtInstructions] = useState(false);
+
+    const [isNotificationSectionOpen, setNotificationSectionOpen] =
+        useState(false);
+
     // const [newKeyword, setNewKeyword] = useState('');
 
     const [testingYt, setTestingYt] = useState(false);
@@ -663,6 +668,87 @@ export default function SettingsDashboard() {
                                 />
                             </div>
                         </div>
+                    </section>
+
+                    {/* Notifications Section */}
+                    <section className="space-y-4 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/30">
+                        <div
+                            className="flex items-center justify-between cursor-pointer"
+                            onClick={() =>
+                                setNotificationSectionOpen(
+                                    !isNotificationSectionOpen
+                                )
+                            }
+                        >
+                            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                                {t('settings.notifications')} |
+                                {isNotificationSectionOpen
+                                    ? <ArrowUpIcon className="w-4 h-4 inline-block ml-1" />
+                                    : <ArrowDownIcon className="w-4 h-4 inline-block ml-1" />}
+                            </h3>
+                        </div>
+
+                        {isNotificationSectionOpen && (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
+                                            DonationAlerts Notifications
+                                        </p>
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                            {t(
+                                                'settings.notifications_da_desc'
+                                            )}
+                                        </p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={
+                                                store.donationAlertsNotifications
+                                            }
+                                            onChange={(e) =>
+                                                store.setDonationAlertsNotificationsStatus(
+                                                    e.target.checked
+                                                )
+                                            }
+                                        />
+                                        <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-900 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500/50 rounded-full peer dark:peer-focus:ring-indigo-400 transition-all peer-checked:bg-indigo-600"></div>
+                                        <div className="absolute left-1 top-1 bg-white dark:bg-zinc-800 w-4 h-4 rounded-full transition-all peer-checked:translate-x-5 shadow-md"></div>
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
+                                            YouTube Video Notifications
+                                        </p>
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                            {t(
+                                                'settings.notifications_yt_desc'
+                                            )}
+                                        </p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={
+                                                store.youtubeVideoNotifications
+                                            }
+                                            onChange={(e) =>
+                                                store.setYoutubeVideoNotificationsStatus(
+                                                    e.target.checked
+                                                )
+                                            }
+                                        />
+                                        <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-900 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500/50 rounded-full peer dark:peer-focus:ring-indigo-400 transition-all peer-checked:bg-indigo-600"></div>
+                                        <div className="absolute left-1 top-1 bg-white dark:bg-zinc-800 w-4 h-4 rounded-full transition-all peer-checked:translate-x-5 shadow-md"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     {/* <div className="h-px bg-zinc-200 dark:bg-zinc-800" /> */}

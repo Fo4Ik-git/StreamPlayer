@@ -42,12 +42,16 @@
     "theme": "Theme",
     "language": "Language",
     "dark": "Dark",
-    "light": "Light"
+    "light": "Light",
+    "notifications": "Notifications",
+    "notifications_da_desc": "Show notifications for new donations from DonationAlerts.",
+    "notifications_yt_desc": "Show notifications for new videos"
   },
   "notifications": {
     "test_donation": "Test Donation: {{username}} - {{amount}} {{currency}}",
     "new_donation": "New Donation: {{username}} - {{amount}} {{currency}}",
     "video_added": "Video added to queue: {{title}}",
+    "videos_added": "Videos added to queue: {{count}}",
     "video_rejected_views": "Video rejected: Not enough views ({{current}} < {{min}})",
     "video_rejected_likes": "Video rejected: Not enough likes ({{current}} < {{min}})",
     "video_rejected_blacklist": "Video rejected: Blacklisted keyword in title",
@@ -56,6 +60,9 @@
     "processing_error": "Error processing video",
     "invalid_url": "Invalid YouTube URL",
     "fetch_error": "Failed to fetch video details from YouTube",
-    "unexpected_error": "Unexpected validation error"
+    "unexpected_error": "Unexpected validation error",
+    "error_fetch_video": "Error fetching video details from YouTube",
+    "error_fetch_playlist": "Error fetching playlist details from YouTube",
+    "processing_playlist": "Processing playlist: {{count}} videos..."
   }
 }

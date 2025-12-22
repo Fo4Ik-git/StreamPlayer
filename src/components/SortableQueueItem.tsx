@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Clock, GripVertical, Trash2 } from 'lucide-react';
-import type { VideoItem } from '../store/useStore';
+import type { VideoItem } from '../lib/interfaces';
 
 interface SortableQueueItemProps {
   video: VideoItem;

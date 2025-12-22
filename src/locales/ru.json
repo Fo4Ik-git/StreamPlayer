@@ -42,12 +42,16 @@
     "theme": "Тема",
     "language": "Язык",
     "dark": "Темная",
-    "light": "Светлая"
+    "light": "Светлая",
+    "notifications": "Уведомления",
+    "notifications_da_desc": "Показывать уведомления о новых донатах с DonationAlerts.",
+    "notifications_yt_desc": "Показывать уведомления о новых видео"
   },
   "notifications": {
     "test_donation": "Тестовый донат: {{username}} - {{amount}} {{currency}}",
     "new_donation": "Новый донат: {{username}} - {{amount}} {{currency}}",
     "video_added": "Видео добавлено в очередь: {{title}}",
+    "videos_added": "Видео добавлено в очередь: {{count}}",
     "video_rejected_views": "Видео отклонено: Мало просмотров ({{current}} < {{min}})",
     "video_rejected_likes": "Видео отклонено: Мало лайков ({{current}} < {{min}})",
     "video_rejected_blacklist": "Видео отклонено: Запрещенное слово в названии",
@@ -56,6 +60,9 @@
     "processing_error": "Ошибка при обработке видео",
     "invalid_url": "Неверная ссылка на YouTube",
     "fetch_error": "Ошибка получения данных с YouTube",
-    "unexpected_error": "Непредвиденная ошибка валидации"
+    "unexpected_error": "Непредвиденная ошибка валидации",
+    "error_fetch_video": "Ошибка при получении деталей видео с YouTube",
+    "error_fetch_playlist": "Ошибка при получении деталей плейлиста с YouTube",
+    "processing_playlist": "Обработка плейлиста: {{count}} видео..."
   }
 }

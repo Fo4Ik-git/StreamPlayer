@@ -71,14 +71,14 @@ async function fetchPlaylistVideoIds(playlistId: string, youtubeApiKey: string):
         return data.items?.map((item: any) => item.contentDetails.videoId) || [];
     } catch (error) {
         console.error('[YouTube API] Playlist fetch error:', error);
-        toast.error('Ошибка при загрузке плейлиста');
+        toast.error(i18n.t('notifications.error_fetch_playlist'));
         return [];
     }
 }
 
 async function processAndAddVideo(videoId: string, donation: Donation, apiKey: string) {
     const store = useStore.getState();
-    const { minViewCount, minLikeCount, blacklistedKeywords, addToQueue } = store;
+    const { minViewCount, minLikeCount, blacklistedKeywords, addToQueue, youtubeVideoNotifications } = store;
 
     const video = await fetchYoutubeVideoDetails(videoId, apiKey);
     console.log("Fetched video details:", video);
@@ -92,12 +92,18 @@ async function processAndAddVideo(videoId: string, donation: Donation, apiKey: s
 
     // Check view count
     if (viewCount < minViewCount) {
+        if (youtubeVideoNotifications) {
+            toast.info(i18n.t('notifications.video_rejected_views', { current: viewCount, min: minViewCount }));
+        }
         console.warn(`Skipped: ${title} (Views: ${viewCount} < ${minViewCount})`);
         return false;
     }
 
     // Check like count
     if (likeCount < minLikeCount) {
+        if (youtubeVideoNotifications) {
+            toast.info(i18n.t('notifications.video_rejected_likes', { current: likeCount, min: minLikeCount }));
+        }
         console.warn(`Skipped: ${title} (Likes: ${likeCount} < ${minLikeCount})`);
         return false;
     }
@@ -107,6 +113,9 @@ async function processAndAddVideo(videoId: string, donation: Donation, apiKey: s
         title.toLowerCase().includes(keyword.toLowerCase())
     );
     if (isBlacklisted) {
+        if (youtubeVideoNotifications) {    
+            toast.info(i18n.t('notifications.video_rejected_blacklist'));
+        }
         console.warn(`Skipped: ${title} (Blacklisted)`);
         return false;
     }
@@ -122,13 +131,17 @@ async function processAndAddVideo(videoId: string, donation: Donation, apiKey: s
         addedAt: Date.now(),
     };
 
+    if (youtubeVideoNotifications) {
+        toast.success(i18n.t('notifications.video_added', { title: videoItem.title }));
+    }
+
     addToQueue(videoItem);
     return true;
 }
 
 export async function addYoutubeVideoToQueueManual(url: string) {
     const store = useStore.getState();
-    const { youtubeApiKey } = store;
+    const { youtubeApiKey, youtubeVideoNotifications } = store;
     
     if (!youtubeApiKey) {
         toast.warning(i18n.t('notifications.missing_api_key'));
@@ -145,8 +158,10 @@ export async function addYoutubeVideoToQueueManual(url: string) {
     // CASE 1: It's a playlist
     if (playlistId) {
         const videoIds = await fetchPlaylistVideoIds(playlistId, youtubeApiKey);
-        toast.info(`Processing playlist: ${videoIds.length} videos...`);
-
+        
+        if (youtubeVideoNotifications) {
+            toast.info(i18n.t('notifications.processing_playlist', { count: videoIds.length }));
+        }
         console.log("Playlist video IDs:", videoIds);
         
         for (const id of videoIds) {    
@@ -174,15 +189,17 @@ export async function addYoutubeVideoToQueueManual(url: string) {
 
     // Final notification
     if (videosAdded > 0) {
-        toast.success(`Videos added: ${videosAdded}`);
+        if (youtubeVideoNotifications) {
+        toast.success(i18n.t('notifications.videos_added', { count: videosAdded }));
+        }
     } else {
-        toast.error('No videos passed the filters or were found');
+        toast.error(i18n.t('notifications.video_not_found'));
     }
 }
 
 export async function addYoutubeVideoToQueue(donation: Donation) {
     const store = useStore.getState();
-    const { youtubeApiKey } = store;
+    const { youtubeApiKey, youtubeVideoNotifications } = store;
 
     if (!youtubeApiKey) {
         toast.warning(i18n.t('notifications.missing_api_key'));
@@ -203,7 +220,9 @@ export async function addYoutubeVideoToQueue(donation: Donation) {
     // CASE 1: It's a playlist
     if (playlistId) {
         const videoIds = await fetchPlaylistVideoIds(playlistId, youtubeApiKey);
-        toast.info(`Обработка плейлиста: ${videoIds.length} видео...`);
+        if (youtubeVideoNotifications) {
+            toast.info(i18n.t('notifications.processing_playlist', { count: videoIds.length }));
+        }
         
         for (const id of videoIds) {
             const success = await processAndAddVideo(id, donation, youtubeApiKey);
@@ -218,8 +237,10 @@ export async function addYoutubeVideoToQueue(donation: Donation) {
 
     // Final notification
     if (videosAdded > 0) {
-        toast.success(`Добавлено видео: ${videosAdded}`);
+        if (youtubeVideoNotifications) {
+            toast.success(i18n.t('notifications.videos_added', { count: videosAdded }));
+        }
     } else {
-        toast.error('Ни одно видео не прошло фильтры или не найдено');
+        toast.error(i18n.t('notifications.video_not_found'));
     }
 }
