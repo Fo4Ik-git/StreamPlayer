@@ -7,6 +7,7 @@
     "eel_failed": "Backend failed to load"
   },
   "status": {
+    "connected_success": "Successfully connected",
     "connected": "Connected",
     "connecting": "Connecting...",
     "disconnected": "Disconnected"
@@ -54,14 +55,7 @@
     "video_rejected_views": "Video rejected: Not enough views ({{current}} < {{min}})",
     "video_rejected_likes": "Video rejected: Not enough likes ({{current}} < {{min}})",
     "video_rejected_blacklist": "Video rejected: Blacklisted keyword in title",
-    "video_not_found": "Video not found on YouTube",
-    "missing_api_key": "YouTube API Key is missing",
     "processing_error": "Error processing video",
-    "invalid_url": "Invalid YouTube URL",
-    "fetch_error": "Failed to fetch video details from YouTube",
-    "unexpected_error": "Unexpected validation error",
-    "error_fetch_video": "Error fetching video details from YouTube",
-    "error_fetch_playlist": "Error fetching playlist details from YouTube",
     "processing_playlist": "Processing playlist: {{count}} videos..."
   },
   "filters": {
@@ -71,5 +65,15 @@
     "min_likes": "Min YouTube Likes",
     "blacklist": "Blacklisted Keywords",
     "add_keyword": "Add keyword"
+  },
+  "errors":{
+    "crtitical": "Critical error",
+    "video_not_found": "Video not found on YouTube",
+    "missing_api_key": "YouTube API Key is missing",
+    "invalid_url": "Invalid YouTube URL",
+    "fetch_error": "Failed to fetch video details from YouTube",
+    "unexpected_error": "Unexpected validation error",
+    "error_fetch_video": "Error fetching video details from YouTube",
+    "error_fetch_playlist": "Error fetching playlist details from YouTube"
   }
 }

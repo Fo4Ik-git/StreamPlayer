@@ -158,7 +158,6 @@ export const useStore = create<AppState>()(
 
             setCurrentVideo: (video) => {
                 set((state) => ({ 
-                    // Принудительно очищаем очередь и обновляем историю при ручном выборе трека
                     history: state.currentVideo 
                         ? [state.currentVideo, ...state.history].slice(0, 10) 
                         : state.history,
@@ -183,7 +182,6 @@ export const useStore = create<AppState>()(
             name: 'streamer-player-storage',
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => {
-                // Не сохраняем временный статус подключения
                 const { daConnectionStatus, ...rest } = state;
                 return rest;
             },

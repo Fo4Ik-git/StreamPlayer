@@ -48,7 +48,7 @@ async function fetchYoutubeVideoDetails(
 
         const data = await response.json();
         if (!data.items || data.items.length === 0) {
-            toast.error(i18n.t('notifications.video_not_found'));
+            toast.error(i18n.t('errors.video_not_found'));
             return null;
         }
 
@@ -71,7 +71,7 @@ async function fetchPlaylistVideoIds(playlistId: string, youtubeApiKey: string):
         return data.items?.map((item: any) => item.contentDetails.videoId) || [];
     } catch (error) {
         console.error('[YouTube API] Playlist fetch error:', error);
-        toast.error(i18n.t('notifications.error_fetch_playlist'));
+        toast.error(i18n.t('errors.error_fetch_playlist'));
         return [];
     }
 }
@@ -144,12 +144,12 @@ export async function addYoutubeVideoToQueueManual(url: string) {
     const { youtubeApiKey, youtubeVideoNotifications } = store;
     
     if (!youtubeApiKey) {
-        toast.warning(i18n.t('notifications.missing_api_key'));
+        toast.warning(i18n.t('errors.missing_api_key'));
         return;
     }
     const { videoId, playlistId } = extractYoutubeIds(url);
     if (!videoId && !playlistId) {
-        toast.error(i18n.t('notifications.invalid_url'));
+        toast.error(i18n.t('errors.invalid_url'));
         return;
     }
 
@@ -193,7 +193,7 @@ export async function addYoutubeVideoToQueueManual(url: string) {
         toast.success(i18n.t('notifications.videos_added', { count: videosAdded }));
         }
     } else {
-        toast.error(i18n.t('notifications.video_not_found'));
+        toast.error(i18n.t('errors.video_not_found'));
     }
 }
 
@@ -202,7 +202,7 @@ export async function addYoutubeVideoToQueue(donation: Donation) {
     const { youtubeApiKey, youtubeVideoNotifications } = store;
 
     if (!youtubeApiKey) {
-        toast.warning(i18n.t('notifications.missing_api_key'));
+        toast.warning(i18n.t('errors.missing_api_key'));
         return;
     }
 
@@ -241,6 +241,6 @@ export async function addYoutubeVideoToQueue(donation: Donation) {
             toast.success(i18n.t('notifications.videos_added', { count: videosAdded }));
         }
     } else {
-        toast.error(i18n.t('notifications.video_not_found'));
+        toast.error(i18n.t('errors.video_not_found'));
     }
 }

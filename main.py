@@ -5,7 +5,6 @@ import sys
 from threading import Thread
 from providers.da_provider import DonationAlertsProvider
 
-# --- Настройка логирования ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(name)s  %(asctime)s [%(levelname)s] %(message)s',
@@ -13,37 +12,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-logger.info("Инициализация StreamPlayer бэкенда...")
+logger.info("Initializing StreamPlayer backend...")
 
 
 def get_app_path():
-    """Определяет путь к ресурсам (поддерживает и dev-режим, и PyInstaller)"""
+    """Determines the path to resources (supports both dev mode and PyInstaller)"""
     if hasattr(sys, '_MEIPASS'):
-        # Путь внутри временной папки PyInstaller
         return sys._MEIPASS
-    # Путь в обычном режиме запуска (через python main.py)
     return os.path.dirname(os.path.abspath(__file__))
 
-# 1. Получаем базовый путь
 base_path = get_app_path()
-
-# 2. Соединяем его с папкой dist
 web_dir = os.path.join(base_path, 'dist')
 
-logger.info(f"[*] Инициализация Eel в папке: {web_dir}")
+logger.info(f"[*] Initializing Eel in directory: {web_dir}")
+
 
 if os.path.exists(web_dir):
     eel.init(web_dir)
 else:
-    logger.error(f"Директория {web_dir} не найдена! Убедитесь, что 'npm run build' выполнен.")
+    logger.error(f"Dicrectory {web_dir} not found! Make sure 'npm run build' has been executed.")
 
-# --- Экспортируемые функции ---
-
-@eel.expose
-def play_stream(url):
-    logger.info(f"Воспроизведение: {url}")
-
-# --- Запуск приложения ---
 
 eel_kwargs = {
     'host': 'localhost',
@@ -56,28 +44,28 @@ def ping():
     return "pong"
 
 try:
-    logger.info("Запуск сервера StreamPlayer...")
+    logger.info("Starting StreamPlayer server...")
     
-    # Если используете 'chrome', Eel создаст апп-окно. 
-    # Если 'None', открывайте http://localhost:8080 вручную.
+    # If you use 'chrome', Eel will create an app window. 
+    # If 'None', open http://localhost:8080 manually.
 
     browser_modes = ['chrome', 'edge', 'default']
 
     # Check if mode chrome is available
     for mode in browser_modes:
         try:
-            print(f"[*] Попытка запуска в режиме: {mode}")
+            print(f"[*] Trying to start in mode: {mode}")
             eel.start('index.html', mode=mode, **eel_kwargs)
             started = True
-            break  # Если запустилось, выходим из цикла
+            break  # If started, exit the loop
         except Exception as e:
-            print(f"[!] Режим {mode} недоступен: {e}")
+            print(f"[!] Mode {mode} not available: {e}")
             continue
 
     if not started:
-        logger.error("Ни один из браузеров не смог запуститься.")
+        logger.error("No browsers could be started.")
     
 except (SystemExit, KeyboardInterrupt):
-    logger.info("Приложение штатно остановлено.")
+    logger.info("Application stopped gracefully.")
 except Exception as e:
-    logger.error(f"Критический сбой: {e}")
+    logger.error(f"Critical failure: {e}")

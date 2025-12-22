@@ -129,7 +129,7 @@ function App() {
             })
             .catch(() => {
                 console.error('[App] ❌ Eel failed to load');
-                toast.error('Критическая ошибка: Бэкенд не отвечает');
+                toast.error(t('errors.crtitical'), { autoClose: 3000 });
             });
     }, []);
 
@@ -162,9 +162,8 @@ function App() {
                             donationAlertsToken: result.access_token,
                             donationAlertsUserId: String(result.user_id),
                         });
-                        toast.success('Подключено успешно!');
+                        toast.success(t('settings.connected_success'), { autoClose: 3000 });
                     }
-                    // Очистка URL БЕЗ перезагрузки страницы
                     window.history.replaceState({}, document.title, '/');
                 } catch (err) {
                     console.error('OAuth Error:', err);

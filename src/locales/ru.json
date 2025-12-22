@@ -7,6 +7,7 @@
     "eel_failed": "Ошибка загрузки бэкенда"
   },
   "status": {
+    "connected_success": "Успешно подключено",
     "connected": "Подключено",
     "connecting": "Подключение...",
     "disconnected": "Отключено"
@@ -55,13 +56,7 @@
     "video_rejected_likes": "Видео отклонено: Мало лайков ({{current}} < {{min}})",
     "video_rejected_blacklist": "Видео отклонено: Запрещенное слово в названии",
     "video_not_found": "Видео не найдено на YouTube",
-    "missing_api_key": "Не настроен YouTube API Key",
     "processing_error": "Ошибка при обработке видео",
-    "invalid_url": "Неверная ссылка на YouTube",
-    "fetch_error": "Ошибка получения данных с YouTube",
-    "unexpected_error": "Непредвиденная ошибка валидации",
-    "error_fetch_video": "Ошибка при получении деталей видео с YouTube",
-    "error_fetch_playlist": "Ошибка при получении деталей плейлиста с YouTube",
     "processing_playlist": "Обработка плейлиста: {{count}} видео..."
   },
   "filters": {
@@ -71,5 +66,14 @@
     "min_likes": "Мин. лайков YouTube",
     "blacklistWords": "Запрещенные слова",
     "add_keyword": "Добавить слово"
+  },
+  "errors":{
+    "crtitical": "Критическая ошибка",
+    "missing_api_key": "Не настроен YouTube API Key",
+    "invalid_url": "Неверная ссылка на YouTube",
+    "fetch_error": "Ошибка получения данных с YouTube",
+    "unexpected_error": "Непредвиденная ошибка валидации",
+    "error_fetch_video": "Ошибка при получении деталей видео с YouTube",
+    "error_fetch_playlist": "Ошибка при получении деталей плейлиста с YouTube"
   }
 }
