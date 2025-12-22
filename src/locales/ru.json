@@ -33,7 +33,6 @@
     "client_secret": "Client Secret",
     "user_id": "DonationAlerts User ID",
     "connect_da": "Подключить DonationAlerts",
-    "filters": "Фильтры и Пороги",
     "min_donation": "Мин. сумма доната",
     "min_views": "Мин. просмотров YouTube",
     "min_likes": "Мин. лайков YouTube",
@@ -64,5 +63,13 @@
     "error_fetch_video": "Ошибка при получении деталей видео с YouTube",
     "error_fetch_playlist": "Ошибка при получении деталей плейлиста с YouTube",
     "processing_playlist": "Обработка плейлиста: {{count}} видео..."
+  },
+  "filters": {
+    "title": "Фильтры",
+    "min_donation": "Мин. сумма доната",
+    "min_views": "Мин. просмотров YouTube",
+    "min_likes": "Мин. лайков YouTube",
+    "blacklistWords": "Запрещенные слова",
+    "add_keyword": "Добавить слово"
   }
 }

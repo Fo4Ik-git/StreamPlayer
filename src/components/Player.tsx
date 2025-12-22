@@ -1,9 +1,9 @@
 'use client';
 
 import {
-    MediaPlayer,
-    MediaProvider,
-    type MediaPlayerInstance
+  MediaPlayer,
+  MediaProvider,
+  type MediaPlayerInstance
 } from '@vidstack/react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/useStore';
@@ -134,7 +134,13 @@ export default function Player() {
             className="w-full h-full"
           >
             <MediaProvider />
-            <DefaultVideoLayout icons={defaultLayoutIcons} />
+            <DefaultVideoLayout 
+              icons={defaultLayoutIcons} 
+              slots={{
+                fullscreenButton: null,
+                afterFullscreenButton: null
+              }}
+            />
           </MediaPlayer>
 
           {error && (

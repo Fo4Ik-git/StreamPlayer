@@ -1,15 +1,18 @@
+import { Filter, Settings } from 'lucide-react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ToastContainer, toast } from 'react-toastify';
 import './App.css';
+import FiltersDashboard from './components/FiltersDashboard';
+import FloatingActions from './components/FloatingActions';
 import Player from './components/Player';
 import QueueList from './components/QueueList';
 import SettingsDashboard from './components/SettingsDashboard';
 import StatusIndicator from './components/StatusIndicator';
 import i18n from './i18n';
 import { addYoutubeVideoToQueue } from './lib/apiYoutube';
-import { useStore } from './store/useStore';
 import type { Donation } from './lib/interfaces';
+import { useStore } from './store/useStore';
 
 // --- Global Eel Exposure ---
 
@@ -103,6 +106,8 @@ function App() {
     const store = useStore();
     const isProcessingOAuth = useRef(false);
     const [isEelReady, setIsEelReady] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     // Apply theme
     useEffect(() => {
@@ -230,6 +235,22 @@ function App() {
 
     if (!hasWindow) return null;
 
+    const actions = [
+        {
+            id: 'filters',
+            icon: Filter,
+            onClick: () => setIsFiltersOpen(true),
+            label: t('filters.title'),
+            color: 'bg-red-500',
+        },
+        {
+            id: 'settings',
+            icon: Settings,
+            onClick: () => setIsSettingsOpen(true),
+            label: t('settings.title'),
+        },
+    ];
+
     return (
         <main className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-white p-4 md:p-6 lg:p-8 flex flex-col gap-6 transition-colors duration-300">
             <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
@@ -251,7 +272,12 @@ function App() {
                 </div>
             </div>
 
-            <SettingsDashboard />
+            {/* <FiltersDashboard />
+            <SettingsDashboard /> */}
+
+            <FloatingActions actions={actions} />
+            <SettingsDashboard isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+            <FiltersDashboard isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
             <Suspense fallback={null}></Suspense>
             <ToastContainer />
         </main>

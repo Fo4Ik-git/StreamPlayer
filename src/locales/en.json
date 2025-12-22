@@ -33,7 +33,6 @@
     "client_secret": "Client Secret",
     "user_id": "DonationAlerts User ID",
     "connect_da": "Connect DonationAlerts",
-    "filters": "Filters & Thresholds",
     "min_donation": "Min Donation Amount",
     "min_views": "Min YouTube View Count",
     "min_likes": "Min YouTube Likes",
@@ -64,5 +63,13 @@
     "error_fetch_video": "Error fetching video details from YouTube",
     "error_fetch_playlist": "Error fetching playlist details from YouTube",
     "processing_playlist": "Processing playlist: {{count}} videos..."
+  },
+  "filters": {
+    "title": "Filters",
+    "min_donation": "Min Donation Amount",
+    "min_views": "Min YouTube View Count",
+    "min_likes": "Min YouTube Likes",
+    "blacklist": "Blacklisted Keywords",
+    "add_keyword": "Add keyword"
   }
 }

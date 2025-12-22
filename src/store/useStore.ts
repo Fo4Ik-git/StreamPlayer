@@ -109,7 +109,7 @@ export const useStore = create<AppState>()(
                 set((state) => {
                     const nextVideo = state.queue[0];
                     const newHistory = state.currentVideo
-                        ? [state.currentVideo, ...state.history].slice(0, 50)
+                        ? [state.currentVideo, ...state.history].slice(0, 10)
                         : state.history;
 
                     if (!nextVideo) {
@@ -157,7 +157,14 @@ export const useStore = create<AppState>()(
                 }),
 
             setCurrentVideo: (video) => {
-                set({ currentVideo: video, isPlaying: !!video });
+                set((state) => ({ 
+                    // Принудительно очищаем очередь и обновляем историю при ручном выборе трека
+                    history: state.currentVideo 
+                        ? [state.currentVideo, ...state.history].slice(0, 10) 
+                        : state.history,
+                    currentVideo: video, 
+                    isPlaying: !!video,
+                }));
             },
 
             setIsPlaying: (playing) => {

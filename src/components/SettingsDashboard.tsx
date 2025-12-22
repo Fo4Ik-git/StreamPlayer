@@ -21,10 +21,14 @@ import { toast } from 'react-toastify';
 import { checkYoutubeConnection } from '../lib/apiYoutube';
 import { useStore } from '../store/useStore';
 
-export default function SettingsDashboard() {
+interface SettingsDashboardProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function SettingsDashboard({isOpen, onClose}: SettingsDashboardProps) {
     const store = useStore();
     const { t, i18n } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
     const [showSecrets, setShowSecrets] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [showYtInstructions, setShowYtInstructions] = useState(false);
@@ -37,8 +41,10 @@ export default function SettingsDashboard() {
     const [testingYt, setTestingYt] = useState(false);
     const [testingDa, setTestingDa] = useState(false);
 
+    if (!isOpen) return null;
+
     const handleSave = () => {
-        setIsOpen(false);
+        onClose();
         toast.success(t('settings.saved'));
     };
 
@@ -97,16 +103,6 @@ export default function SettingsDashboard() {
         }
     };
 
-    if (!isOpen) {
-        return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 p-3 bg-zinc-900 text-white rounded-full shadow-lg hover:bg-zinc-800 transition-all border border-zinc-700 z-50"
-            >
-                <Settings className="w-6 h-6" />
-            </button>
-        );
-    }
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -117,7 +113,7 @@ export default function SettingsDashboard() {
                         {t('settings.title')}
                     </h2>
                     <button
-                        onClick={() => setIsOpen(false)}
+                        onClick={onClose}
                         className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
                     >
                         <X className="w-6 h-6" />
@@ -610,65 +606,6 @@ export default function SettingsDashboard() {
 
                     <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
 
-                    {/* Filters Section */}
-                    <section className="space-y-4">
-                        <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
-                            {t('settings.filters')}
-                        </h3>
-                        <div className="grid gap-4 md:grid-cols-3">
-                            {/* <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                                    {t('settings.min_donation')}
-                                </label>
-                                <input
-                                    type="number"
-                                    value={store.minDonationAmount}
-                                    onChange={(e) =>
-                                        store.setSettings({
-                                            minDonationAmount: Number(
-                                                e.target.value
-                                            ),
-                                        })
-                                    }
-                                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                                />
-                            </div> */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                                    {t('settings.min_views')}
-                                </label>
-                                <input
-                                    type="number"
-                                    value={store.minViewCount}
-                                    onChange={(e) =>
-                                        store.setSettings({
-                                            minViewCount: Number(
-                                                e.target.value
-                                            ),
-                                        })
-                                    }
-                                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                                    {t('settings.min_likes')}
-                                </label>
-                                <input
-                                    type="number"
-                                    value={store.minLikeCount}
-                                    onChange={(e) =>
-                                        store.setSettings({
-                                            minLikeCount: Number(
-                                                e.target.value
-                                            ),
-                                        })
-                                    }
-                                    className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                                />
-                            </div>
-                        </div>
-                    </section>
 
                     {/* Notifications Section */}
                     <section className="space-y-4 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/30">
@@ -750,65 +687,6 @@ export default function SettingsDashboard() {
                             </div>
                         )}
                     </section>
-
-                    {/* <div className="h-px bg-zinc-200 dark:bg-zinc-800" /> */}
-
-                    {/* Blacklist Section */}
-                    {/* <section className="space-y-4">
-                        <h3 className="text-lg font-semibold text-zinc-200">
-                            Blacklisted Keywords
-                        </h3>
-                        <div className="flex gap-2">
-                            <input
-                                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                                placeholder="e.g. 'cringe', 'banned'"
-                                value={newKeyword}
-                                onChange={(e) => setNewKeyword(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && newKeyword) {
-                                        store.addBlacklistedKeyword(newKeyword);
-                                        setNewKeyword('');
-                                    }
-                                }}
-                            />
-                            <button
-                                onClick={() => {
-                                    if (newKeyword) {
-                                        store.addBlacklistedKeyword(newKeyword);
-                                        setNewKeyword('');
-                                    }
-                                }}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 transition-colors"
-                            >
-                                <Plus className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {store.blacklistedKeywords.map((keyword) => (
-                                <span
-                                    key={keyword}
-                                    className="inline-flex items-center gap-1 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-sm text-zinc-300"
-                                >
-                                    {keyword}
-                                    <button
-                                        onClick={() =>
-                                            store.removeBlacklistedKeyword(
-                                                keyword
-                                            )
-                                        }
-                                        className="hover:text-red-400"
-                                    >
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </span>
-                            ))}
-                            {store.blacklistedKeywords.length === 0 && (
-                                <p className="text-sm text-zinc-600 italic">
-                                    No blacklisted keywords.
-                                </p>
-                            )}
-                        </div>
-                    </section> */}
                 </div>
 
                 <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
