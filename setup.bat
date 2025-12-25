@@ -3,42 +3,46 @@ setlocal
 
 echo 🚀 Starting project setup for Windows...
 
-:: 1. Setup Python Virtual Environment
+:: 1. Определение пути к venv
+set VENV_DIR=.venv
+
+:: 2. Создание виртуального окружения
 echo 🐍 Setting up Python virtual environment...
-if exist ".venv" (
+if exist "%VENV_DIR%" (
     echo    Virtual environment already exists.
 ) else (
-    python -m venv .venv
+    python -m venv %VENV_DIR%
     echo    Virtual environment created.
 )
 
-:: Activate virtual environment
-@REM call .venv\Scripts\activate.bat
-
-:: 2. Install Python Dependencies
+:: 3. Установка Python зависимостей
 echo 📦 Installing Python dependencies...
 if exist "requirements.txt" (
-    pip install -r requirements.txt
+    :: Используем путь напрямую к бинарнику venv для надежности
+    %VENV_DIR%\Scripts\python.exe -m pip install --upgrade pip
+    %VENV_DIR%\Scripts\python.exe -m pip install -r requirements.txt
+    %VENV_DIR%\Scripts\python.exe -m pip install eel
 ) else (
     echo ❌ requirements.txt not found!
     exit /b 1
 )
 
-:: 3. Install Node.js Dependencies
+:: 4. Установка Node.js зависимостей
 echo 📦 Installing Node.js dependencies...
 if exist "package.json" (
     call npm install
 ) else (
-    echo ❌ package.json not found! Are you in the 'web' directory?
-    exit /b 1
+    echo ⚠️  package.json not found, skipping npm install.
 )
 
+echo.
 echo ✅ Setup complete!
+echo --------------------------------------
+echo ℹ️  To activate the virtual environment:
+echo 👉 Run: %VENV_DIR%\Scripts\activate
 echo.
-echo To start the application:
-echo 1. Create venv: python -m venv .venv
-echo 1. Activate venv: .venv\Scripts\activate
-echo 2. Run: pip install eel
-echo 3. Run: npm run start
+echo 🚀 To start the application:
+echo 👉 Run: npm run start
 echo.
+
 pause

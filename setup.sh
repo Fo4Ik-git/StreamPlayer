@@ -18,12 +18,11 @@ else
 fi
 
 # 3. Установка Python зависимостей
-# ВАЖНО: используем прямой путь к python внутри venv, чтобы избежать PEP 668
 echo "📦 Installing Python dependencies..."
 if [ -f "requirements.txt" ]; then
+    # Используем путь напрямую к бинарнику venv для надежности
     ./$VENV_DIR/bin/python3 -m pip install --upgrade pip
     ./$VENV_DIR/bin/python3 -m pip install -r requirements.txt
-    # Дополнительно ставим eel, если его нет в requirements
     ./$VENV_DIR/bin/python3 -m pip install eel
 else
     echo "❌ requirements.txt not found!"
@@ -35,15 +34,21 @@ echo "📦 Installing Node.js dependencies..."
 if [ -f "package.json" ]; then
     npm install
 else
-    echo "❌ package.json not found!"
-    exit 1
+    echo "⚠️  package.json not found, skipping npm install."
 fi
 
 echo ""
 echo "✅ Setup complete!"
 echo "--------------------------------------"
-echo "To start the application:"
-echo "1. Create venv: python3 -m venv .venv"
-echo "2. Activate venv: source $VENV_DIR/bin/activate"
-echo "3. Install eel: pip3 install eel"
-echo "4. Run: npm run start"
+
+# КЛЮЧЕВАЯ ЧАСТЬ: Активация venv для текущей сессии
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # Скрипт запущен как файл (./setup.sh)
+    echo "ℹ️  Script finished in a subshell."
+    echo "👉 To activate venv now, run: source $VENV_DIR/bin/activate"
+else
+    # Скрипт запущен через source или .
+    source "$VENV_DIR/bin/activate"
+    echo "⚡ Virtual environment ACTIVATED automatically!"
+    echo "🚀 You can now run: npm run start"
+fi
