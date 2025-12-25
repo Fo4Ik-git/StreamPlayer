@@ -42,7 +42,7 @@ eel_kwargs = {
     'port': 8080,
     'shutdown_delay': 5.0,
 
-    'cmdline_args': ['--auto-open-devtools-for-tabs']
+    # 'cmdline_args': ['--auto-open-devtools-for-tabs']
 }
 
 @eel.expose
