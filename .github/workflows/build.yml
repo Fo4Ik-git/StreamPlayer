@@ -50,7 +50,6 @@ jobs:
     - name: Build App
       run: |
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then npm run build:linux; fi
-        if [ "${{ matrix.os }}" == "macos-latest" ]; then npm run build:mac; fi
         if [ "${{ matrix.os }}" == "windows-latest" ]; then npm run build:win; fi
       shell: bash
 
@@ -101,14 +100,12 @@ jobs:
           git rm -rf .
         fi
         
-        mkdir -p windows macos linux
+        mkdir -p windows linux
         
         find artifacts -name "*.exe" -exec cp {} windows/ \;
-        find artifacts -name "*.app" -exec cp -r {} macos/ \;
-        # Для Linux (бинарник без расширения), исключая .app и .exe
         find artifacts -type f ! -name "*.exe" ! -name "*.app" -path "*/StreamPlayer-v*" -exec cp {} linux/ \;
         
-        git add windows macos linux
+        git add windows linux
         
         if git diff --staged --quiet; then
           echo "No changes to commit"

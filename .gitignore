@@ -31,3 +31,4 @@ __pycache__/
 *.pyc
 
 StreamPlayer.spec
+package-lock.json

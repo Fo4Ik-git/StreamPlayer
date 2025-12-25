@@ -41,7 +41,6 @@ eel_kwargs = {
     'host': 'localhost',
     'port': 8080,
     'shutdown_delay': 5.0,
-
     # 'cmdline_args': ['--auto-open-devtools-for-tabs']
 }
 
