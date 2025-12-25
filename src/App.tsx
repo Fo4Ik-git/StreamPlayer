@@ -10,9 +10,11 @@ import QueueList from './components/QueueList';
 import SettingsDashboard from './components/SettingsDashboard';
 import StatusIndicator from './components/StatusIndicator';
 import i18n from './i18n';
+import { connectDonateX } from './lib/apiDonateX';
 import { addYoutubeVideoToQueue } from './lib/apiYoutube';
 import type { Donation } from './lib/interfaces';
 import { useStore } from './store/useStore';
+import packageJson from '../package.json';
 
 // --- Global Eel Exposure ---
 
@@ -24,9 +26,9 @@ window.onNewDonation = async (donation: Donation) => {
     const { donationAlertsNotifications } = store;
 
     // 1. Show notification
-    if (donation.is_test) {
-        toast.info(
-            i18n.t('notifications.test_donation', {
+    if (donationAlertsNotifications) {
+        toast.success(
+            i18n.t('notifications.new_donation', {
                 username: donation.username,
                 amount: donation.amount,
                 currency: donation.currency,
@@ -35,19 +37,6 @@ window.onNewDonation = async (donation: Donation) => {
                 autoClose: 3000,
             }
         );
-    } else {
-        if (donationAlertsNotifications) {
-            toast.success(
-                i18n.t('notifications.new_donation', {
-                    username: donation.username,
-                    amount: donation.amount,
-                    currency: donation.currency,
-                }),
-                {
-                    autoClose: 5000,
-                }
-            );
-        }
     }
 
     await addYoutubeVideoToQueue(donation);
@@ -129,50 +118,60 @@ function App() {
             })
             .catch(() => {
                 console.error('[App] ❌ Eel failed to load');
-                toast.error(t('errors.crtitical'), { autoClose: 3000 });
+                toast.error('Критическая ошибка: Бэкенд не отвечает');
             });
     }, []);
 
     useEffect(() => {
         if (!isEelReady || isProcessingOAuth.current) return;
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
+        const initProviders = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
 
-        if (code) {
-            isProcessingOAuth.current = true;
-            const handleAuth = async () => {
-                try {
-                    // Wait a bit more to ensure all exports are registered
-                    await new Promise((r) => setTimeout(r, 500));
+            if (code && store.donationAlertsClientId && store.donationAlertsClientSecret && store.isDAEnabled) {
+                isProcessingOAuth.current = true;
+                const handleAuth = async () => {
+                    try {
+                        // Wait a bit more to ensure all exports are registered
+                        await new Promise((r) => setTimeout(r, 500));
 
-                    const clientId = store.donationAlertsClientId;
-                    const clientSecret = store.donationAlertsClientSecret;
-                    const redirectUri = `${window.location.protocol}//${window.location.host}/`;
+                        const clientId = store.donationAlertsClientId;
+                        const clientSecret = store.donationAlertsClientSecret;
+                        const redirectUri = `${window.location.protocol}//${window.location.host}/`;
 
-                    const result = await window.eel.exchange_da_code(
-                        code,
-                        clientId,
-                        clientSecret,
-                        redirectUri
-                    )();
+                        const result = await window.eel.exchange_da_code(
+                            code,
+                            clientId,
+                            clientSecret,
+                            redirectUri
+                        )();
 
-                    if (result.success) {
-                        store.setSettings({
-                            donationAlertsToken: result.access_token,
-                            donationAlertsUserId: String(result.user_id),
-                        });
-                        toast.success(t('settings.connected_success'), { autoClose: 3000 });
+                        if (result.success) {
+                            store.setSettings({
+                                donationAlertsToken: result.access_token,
+                                donationAlertsUserId: String(result.user_id),
+                            });
+                            toast.success('Подключено успешно!');
+                        }
+                        // Очистка URL БЕЗ перезагрузки страницы
+                        window.history.replaceState({}, document.title, '/');
+                    } catch (err) {
+                        console.error('OAuth Error:', err);
+                    } finally {
+                        isProcessingOAuth.current = false;
                     }
-                    window.history.replaceState({}, document.title, '/');
-                } catch (err) {
-                    console.error('OAuth Error:', err);
-                } finally {
-                    isProcessingOAuth.current = false;
-                }
-            };
-            handleAuth();
-        }
+                };
+                handleAuth();
+            }
+
+            if (store.donatexToken && store.isDXEnabled) {
+                console.log('[App] 🔄 DX connecting via SignalR...');
+                await connectDonateX(store.donatexToken);
+            }
+        };
+
+        initProviders();
     }, [isEelReady]);
 
     // Get current DA connection status on Eel ready
@@ -197,7 +196,7 @@ function App() {
         if (!hasWindow || !window.eel) return;
 
         // If tokens exist, auto-connect
-        if (store.donationAlertsToken && store.donationAlertsClientId) {
+        if (store.donationAlertsToken && store.donationAlertsClientId && store.isDAEnabled) {
             console.log('[App] 🔄 Token found, auto-connecting...');
 
             const connectWithExistingToken = async () => {
@@ -256,7 +255,7 @@ function App() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
                     {t('app.title')}{' '}
                     <span className="text-zinc-500 text-sm font-normal">
-                        {t('app.version')}
+                        {packageJson.version}
                     </span>
                 </h1>
                 <StatusIndicator />
@@ -275,8 +274,14 @@ function App() {
             <SettingsDashboard /> */}
 
             <FloatingActions actions={actions} />
-            <SettingsDashboard isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-            <FiltersDashboard isOpen={isFiltersOpen} onClose={() => setIsFiltersOpen(false)} />
+            <SettingsDashboard
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
+            <FiltersDashboard
+                isOpen={isFiltersOpen}
+                onClose={() => setIsFiltersOpen(false)}
+            />
             <Suspense fallback={null}></Suspense>
             <ToastContainer />
         </main>

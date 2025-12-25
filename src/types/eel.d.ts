@@ -42,11 +42,10 @@ interface Eel {
     exchange_da_code: (code: string, client_id: string, client_secret: string, redirect_uri?: string) => () => Promise<EelTokenResult>;
     connect_with_token: (access_token: string, refresh_token: string, client_id: string, client_secret: string) => () => Promise<EelTokenResult>;
     get_da_status: () => () => Promise<{status: string}>;
-    
-    // Callback functions (called from Python)
-    onDAStatusUpdate?: (data: { status: string; token?: string }) => void;
-    onNewDonation?: (donation: EelDonation) => void;
-    onDAConnectionStatus?: (data: { status: string; channel?: string }) => void;
+    connect_dx: (access_token: string) => () => Promise<EelCallbackResult>;
+    get_dx_status: () => () => Promise<{status: string}>;
+    connect_provider: (provider_id: string, config: any) => () => Promise<EelCallbackResult>;
+    get_all_statuses: () => () => Promise<Record<string, {status: string}>>;
 }
 
 declare global {

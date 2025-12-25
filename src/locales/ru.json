@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "StreamPlayer",
-    "version": "v1.0 - Бета",
     "waiting_eel": "Ожидание бэкенда...",
     "eel_ready": "Бэкенд подключен",
     "eel_failed": "Ошибка загрузки бэкенда"
@@ -34,6 +33,7 @@
     "client_secret": "Client Secret",
     "user_id": "DonationAlerts User ID",
     "connect_da": "Подключить DonationAlerts",
+    "connect_dx": "Подключить DonateX",
     "min_donation": "Мин. сумма доната",
     "min_views": "Мин. просмотров YouTube",
     "min_likes": "Мин. лайков YouTube",

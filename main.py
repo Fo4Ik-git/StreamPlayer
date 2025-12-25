@@ -3,7 +3,8 @@ import os
 import logging
 import sys
 from threading import Thread
-from providers.da_provider import DonationAlertsProvider
+from providers.da_provider import da_provider
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 logger.info("Initializing StreamPlayer backend...")
 
+PROVIDERS = {
+    'DA': da_provider
+}
 
 def get_app_path():
     """Determines the path to resources (supports both dev mode and PyInstaller)"""
@@ -37,11 +41,39 @@ eel_kwargs = {
     'host': 'localhost',
     'port': 8080,
     'shutdown_delay': 5.0,
+
+    'cmdline_args': ['--auto-open-devtools-for-tabs']
 }
 
 @eel.expose
 def ping():
     return "pong"
+
+
+@eel.expose
+def connect_provider(provider_id, config):
+    """Универсальная функция подключения"""
+    if provider_id in PROVIDERS:
+        # Для DA мы вызываем connect_with_token, для DX - connect
+        # Приводим к общему виду:
+        provider = PROVIDERS[provider_id]
+        
+        if provider_id == 'DA':
+            return provider.connect_with_token(
+                config.get('token'),
+                config.get('refresh_token'),
+                config.get('client_id'),
+                config.get('client_secret')
+            )
+        elif provider_id == 'DX':
+            return provider.connect(config.get('token'))
+            
+    return {"success": False, "message": "Provider not found"}
+
+@eel.expose
+def get_all_statuses():
+    """Получить статусы всех провайдеров сразу"""
+    return {p_id: p.get_status() for p_id, p in PROVIDERS.items()}
 
 try:
     logger.info("Starting StreamPlayer server...")
@@ -55,7 +87,7 @@ try:
     for mode in browser_modes:
         try:
             print(f"[*] Trying to start in mode: {mode}")
-            eel.start('index.html', mode=mode, **eel_kwargs)
+            eel.start('index.html', mode=mode, **eel_kwargs, )
             started = True
             break  # If started, exit the loop
         except Exception as e:

@@ -21,6 +21,7 @@ import { toast } from 'react-toastify';
 import { checkYoutubeConnection } from '../lib/apiYoutube';
 import { useStore } from '../store/useStore';
 import DonationAlertsProvider from './providers/DonationAlerts';
+import DonationXProvider from './providers/DonationX';
 
 interface SettingsDashboardProps {
     isOpen: boolean;
@@ -327,6 +328,7 @@ export default function SettingsDashboard({isOpen, onClose}: SettingsDashboardPr
 
                             {/* DonationAlerts OAuth Section */}
                             <DonationAlertsProvider showSecrets={showSecrets} />
+                            <DonationXProvider showSecrets={showSecrets} />
 
                             {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-400">Donation X API Key</label>

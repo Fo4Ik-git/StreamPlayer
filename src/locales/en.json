@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "StreamPlayer",
-    "version": "v1.0 - Beta",
     "waiting_eel": "Waiting for backend...",
     "eel_ready": "Backend connected",
     "eel_failed": "Backend failed to load"
@@ -34,6 +33,7 @@
     "client_secret": "Client Secret",
     "user_id": "DonationAlerts User ID",
     "connect_da": "Connect DonationAlerts",
+    "connect_dx": "Connect DonateX",
     "min_donation": "Min Donation Amount",
     "min_views": "Min YouTube View Count",
     "min_likes": "Min YouTube Likes",

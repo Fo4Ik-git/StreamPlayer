@@ -33,19 +33,24 @@ export interface NotificationsState {
     youtubeVideoNotifications: boolean;
 }
 
+export interface DonateXState {
+    isDXEnabled: boolean;
+    donatexToken: string;
+    dxConnectionStatus: 'connected' | 'disconnected' | 'connecting';
+}
 
 export interface DonationAlertsState {
+    isDAEnabled: boolean;
     donationAlertsToken: string;
     donationAlertsRefreshToken: string;
     donationAlertsTokenExpiry: number;
     donationAlertsUserId: string;
     donationAlertsClientId: string;
     donationAlertsClientSecret: string;
-    donationXApiKey: string;
     daConnectionStatus: 'connected' | 'disconnected' | 'connecting';
 }
 
-export interface SettingsState extends DonationAlertsState, YoutubeVideoFilter, NotificationsState {
+export interface SettingsState extends DonationAlertsState, DonateXState, YoutubeVideoFilter, NotificationsState {
     youtubeApiKey: string;
     theme: 'dark' | 'light';
     setSettings: (settings: Partial<SettingsState>) => void;
@@ -54,6 +59,9 @@ export interface SettingsState extends DonationAlertsState, YoutubeVideoFilter, 
     setYoutubeVideoNotificationsStatus: (enabled: boolean) => void;
     removeBlacklistedKeyword: (keyword: string) => void;
     setDAConnectionStatus: (
+        status: 'connected' | 'disconnected' | 'connecting'
+    ) => void;
+    setDXConnectionStatus: (
         status: 'connected' | 'disconnected' | 'connecting'
     ) => void;
     setTheme: (theme: 'dark' | 'light') => void;

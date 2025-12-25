@@ -54,7 +54,7 @@ export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProp
                             {t('filters.title')}
                         </h3>
                         <div className="grid gap-4 md:grid-cols-3">
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                                     {t('filters.min_donation')}
                                 </label>
@@ -70,7 +70,7 @@ export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProp
                                     }
                                     className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                 />
-                            </div>
+                            </div> */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                                     {t('filters.min_views')}

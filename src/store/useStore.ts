@@ -8,20 +8,28 @@ export const useStore = create<AppState>()(
         (set) => ({
             // Settings Initial State
             youtubeApiKey: '',
+
+            // DonationAlerts Initial State
+            isDAEnabled: true,
             donationAlertsToken: '',
             donationAlertsRefreshToken: '',
             donationAlertsTokenExpiry: 0,
             donationAlertsUserId: '',
             donationAlertsClientId: '',
             donationAlertsClientSecret: '',
-            donationXApiKey: '',
             daConnectionStatus: 'disconnected',
+
+            // DonateX Initial State
+            isDXEnabled: true,
+            donatexToken: '',
+            dxConnectionStatus: 'disconnected',
+
             theme: 'dark',
 
             // YouTube Video Filter Initial State
-            minDonationAmount: 100,
-            minViewCount: 50000,
-            minLikeCount: 10000,
+            minDonationAmount: 1,
+            minViewCount: 0,
+            minLikeCount: 0,
             blacklistedUrls: [],
             blacklistedKeywords: [],
 
@@ -52,6 +60,9 @@ export const useStore = create<AppState>()(
 
             setDAConnectionStatus: (status) =>
                 set({ daConnectionStatus: status }),
+
+            setDXConnectionStatus: (status) =>
+                set({ dxConnectionStatus: status }),
 
             setTheme: (theme) => set({ theme }),
 
@@ -177,6 +188,12 @@ export const useStore = create<AppState>()(
 
             setYoutubeVideoNotificationsStatus: (enabled: boolean) =>
                 set({ youtubeVideoNotifications: enabled }),
+
+            setIsDAEnabled: (enabled: boolean) =>
+                set({ isDAEnabled: enabled }),
+
+            setIsDXEnabled: (enabled: boolean) =>
+                set({ isDXEnabled: enabled }),
         }),
         {
             name: 'streamer-player-storage',
