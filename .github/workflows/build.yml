@@ -26,6 +26,14 @@ jobs:
       with:
         node-version: '20'
 
+    - name: Get version from package.json
+      id: get_version
+      shell: bash
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -39,38 +47,31 @@ jobs:
     - name: Install Node dependencies
       run: npm install
 
-    - name: Build for Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: npm run build:linux
+    - name: Build App
+      run: |
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then npm run build:linux; fi
+        if [ "${{ matrix.os }}" == "macos-latest" ]; then npm run build:mac; fi
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then npm run build:win; fi
+      shell: bash
 
-    - name: Build for macOS
-      if: matrix.os == 'macos-latest'
-      run: npm run build:mac
+    - name: Prepare artifacts
+      shell: bash
+      run: |
+        mkdir -p dist/ready
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          cp dist/StreamPlayer.exe dist/ready/StreamPlayer-v${{ env.APP_VERSION }}.exe
+        elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          cp dist/StreamPlayer dist/ready/StreamPlayer-v${{ env.APP_VERSION }}
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          # Для macOS .app это папка, её лучше копировать целиком
+          cp -r dist/StreamPlayer.app dist/ready/StreamPlayer-v${{ env.APP_VERSION }}.app
+        fi
 
-    - name: Build for Windows
-      if: matrix.os == 'windows-latest'
-      run: npm run build:win
-
-    - name: Upload Artifacts (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: StreamPlayer-Windows
-        path: dist/StreamPlayer.exe
-
-    - name: Upload Artifacts (macOS)
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: StreamPlayer-macOS
-        path: dist/StreamPlayer.app
-
-    - name: Upload Artifacts (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: StreamPlayer-Linux
-        path: dist/StreamPlayer
+        name: StreamPlayer-v${{ env.APP_VERSION }}-${{ matrix.os }}
+        path: dist/ready/
 
   publish:
     needs: build
@@ -78,6 +79,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Get version from package.json
+      id: get_version
+      run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
@@ -88,7 +93,6 @@ jobs:
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         
-        # Fetch and switch to builds branch
         git fetch origin builds || true
         if git rev-parse --verify origin/builds >/dev/null 2>&1; then
           git checkout builds
@@ -99,27 +103,16 @@ jobs:
         
         mkdir -p windows macos linux
         
-        # Copy Windows artifact
-        if [ -f artifacts/StreamPlayer-Windows/StreamPlayer.exe ]; then
-          cp artifacts/StreamPlayer-Windows/StreamPlayer.exe windows/
-        fi
-        
-        # Copy macOS artifact
-        if [ -d artifacts/StreamPlayer-macOS/StreamPlayer.app ]; then
-          rm -rf macos/StreamPlayer.app
-          cp -r artifacts/StreamPlayer-macOS/StreamPlayer.app macos/
-        fi
-        
-        # Copy Linux artifact
-        if [ -f artifacts/StreamPlayer-Linux/StreamPlayer ]; then
-          cp artifacts/StreamPlayer-Linux/StreamPlayer linux/
-        fi
+        find artifacts -name "*.exe" -exec cp {} windows/ \;
+        find artifacts -name "*.app" -exec cp -r {} macos/ \;
+        # Для Linux (бинарник без расширения), исключая .app и .exe
+        find artifacts -type f ! -name "*.exe" ! -name "*.app" -path "*/StreamPlayer-v*" -exec cp {} linux/ \;
         
         git add windows macos linux
         
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
-          git commit -m "Update builds: ${{ github.sha }}"
+          git commit -m "Update builds v${{ env.VERSION }}: ${{ github.sha }}"
           git push origin builds
         fi
