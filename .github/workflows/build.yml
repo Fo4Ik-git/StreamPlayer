@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -61,9 +61,6 @@ jobs:
           cp dist/StreamPlayer.exe dist/ready/StreamPlayer-v${{ env.APP_VERSION }}.exe
         elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
           cp dist/StreamPlayer dist/ready/StreamPlayer-v${{ env.APP_VERSION }}
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          # Для macOS .app это папка, её лучше копировать целиком
-          cp -r dist/StreamPlayer.app dist/ready/StreamPlayer-v${{ env.APP_VERSION }}.app
         fi
 
     - name: Upload Artifacts
