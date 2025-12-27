@@ -1,22 +1,21 @@
 'use client';
 
-import {
-    Plus,
-    Save,
-    Settings,
-    X
-} from 'lucide-react';
+import { Plus, Save, Settings, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useStore } from '../store/useStore';
+import { Switch } from './ui/switch';
 
 interface FiltersDashboardProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProps) {
+export default function FiltersDashboard({
+    isOpen,
+    onClose,
+}: FiltersDashboardProps) {
     const store = useStore();
     const { t } = useTranslation();
     const [newKeyword, setNewKeyword] = useState('');
@@ -26,9 +25,7 @@ export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProp
         toast.success(t('settings.saved'));
     };
 
-
     if (!isOpen) return null;
-
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -47,7 +44,6 @@ export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProp
                 </div>
 
                 <div className="p-6 space-y-8">
-
                     {/* Filters Section */}
                     <section className="space-y-4">
                         <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
@@ -115,8 +111,28 @@ export default function FiltersDashboard({isOpen, onClose}: FiltersDashboardProp
                     {/* Blacklist Section */}
                     <section className="space-y-4">
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                            {t('filters.blacklistWords')}
+                            {t('filters.blacklistWords.title')}
                         </h3>
+
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                                    {t('filters.blacklistWords.subtitle.line1')}
+                                </span>
+                                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {t('filters.blacklistWords.subtitle.line2')}
+                                </span>
+                            </div>
+                            <Switch
+                                checked={store.isCaptionsEnabled}
+                                onCheckedChange={(checked) =>
+                                    store.setSettings({
+                                        isCaptionsEnabled: checked,
+                                    })
+                                }
+                            />
+                        </div>
+
                         <div className="flex gap-2">
                             <input
                                 className="w-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"

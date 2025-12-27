@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { connectDonateX } from '../../lib/apiDonateX';
 import { useStore } from '../../store/useStore';
+import { Switch } from '../ui/switch';
 
 interface DonationXProviderProps {
     showSecrets?: boolean;
@@ -72,28 +73,12 @@ export default function DonationXProvider({
                         <span className="text-xs text-zinc-500 uppercase font-medium">
                             {store.isDXEnabled ? 'On' : 'Off'}
                         </span>
-
-                        <label className="relative inline-flex items-center cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                className="sr-only peer"
-                                checked={store.isDXEnabled}
-                                onChange={(e) =>
-                                    store.setSettings({
-                                        isDXEnabled: e.target.checked,
-                                    })
-                                }
-                            />
-                            <div
-                                className="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 rounded-full peer 
-                peer-focus:ring-2 peer-focus:ring-indigo-500/30 
-                peer-checked:bg-indigo-600 transition-all duration-300
-                after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-                after:bg-white after:rounded-full after:h-5 after:w-5 
-                after:transition-all after:shadow-sm
-                peer-checked:after:translate-x-5"
-                            ></div>
-                        </label>
+                        <Switch
+                            checked={store.isDXEnabled}
+                            onCheckedChange={(checked) =>
+                                store.setSettings({ isDXEnabled: checked })
+                            }
+                        />
                     </div>
                     <button
                         onClick={handleConnect}

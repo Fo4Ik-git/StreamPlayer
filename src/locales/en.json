@@ -54,7 +54,7 @@
     "videos_added": "Videos added to queue: {{count}}",
     "video_rejected_views": "Video rejected: Not enough views ({{current}} < {{min}})",
     "video_rejected_likes": "Video rejected: Not enough likes ({{current}} < {{min}})",
-    "video_rejected_blacklist": "Video rejected: Blacklisted keyword in title",
+    "video_rejected_blacklist": "Video rejected: Blacklisted keyword in title or in text",
     "processing_error": "Error processing video",
     "processing_playlist": "Processing playlist: {{count}} videos..."
   },
@@ -63,8 +63,14 @@
     "min_donation": "Min Donation Amount",
     "min_views": "Min YouTube View Count",
     "min_likes": "Min YouTube Likes",
-    "blacklist": "Blacklisted Keywords",
-    "add_keyword": "Add keyword"
+    "add_keyword": "Add keyword",
+    "blacklistWords": {
+      "title": "Blacklisted Words",
+      "subtitle": {
+        "line1": "Video text processing",
+        "line2": "Search for blacklisted words in subtitles and song lyrics"
+      }
+    }
   },
   "errors":{
     "crtitical": "Critical error",

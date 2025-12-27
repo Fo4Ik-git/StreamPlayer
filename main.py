@@ -4,6 +4,7 @@ import logging
 import sys
 from threading import Thread
 from providers.da_provider import da_provider
+from providers.youtube_caption import caption_provider
 
 
 logging.basicConfig(
@@ -16,7 +17,8 @@ logger = logging.getLogger(__name__)
 logger.info("Initializing StreamPlayer backend...")
 
 PROVIDERS = {
-    'DA': da_provider
+    'DA': da_provider,
+    'YC': caption_provider
 }
 
 def get_app_path():

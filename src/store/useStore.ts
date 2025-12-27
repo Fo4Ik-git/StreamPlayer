@@ -8,6 +8,7 @@ export const useStore = create<AppState>()(
         (set) => ({
             // Settings Initial State
             youtubeApiKey: '',
+            isCaptionsEnabled: true,
 
             // DonationAlerts Initial State
             isDAEnabled: true,
@@ -194,6 +195,9 @@ export const useStore = create<AppState>()(
 
             setIsDXEnabled: (enabled: boolean) =>
                 set({ isDXEnabled: enabled }),
+
+            setIsCaptionsEnabled: (enabled: boolean) =>
+                set({ isCaptionsEnabled: enabled }),
         }),
         {
             name: 'streamer-player-storage',

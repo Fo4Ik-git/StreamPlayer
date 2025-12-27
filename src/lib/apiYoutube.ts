@@ -1,7 +1,32 @@
 import { toast } from 'react-toastify';
 import i18n from '../i18n';
 import { useStore } from '../store/useStore';
-import type { Donation } from './interfaces';
+import type { Donation, VideoItem } from './interfaces';
+
+async function fetchTranscript(videoId: string): Promise<string | null> {
+    try {
+        if (!window.eel) {
+            console.error("Eel is not initialized");
+            return null;
+        }
+
+        console.log(`[YouTube] Requesting transcript from Python for: ${videoId}`);
+
+        // @ts-ignore
+        const result = await window.eel.get_video_transcript(videoId)();
+        
+        if (result && result.success) {
+            console.log(`[YouTube] Transcript received from backend`);
+            return result.transcript;
+        } else {
+            console.warn(`[YouTube] Backend failed to get transcript: ${result?.message}`);
+            return null;
+        }
+    } catch (error) {
+        console.warn(`[YouTube] Transcript not found or disabled for video: ${videoId}`);
+        return null;
+    }
+}
 
 export async function checkYoutubeConnection(apiKey: string) {
     if (!apiKey) return false;
@@ -84,6 +109,17 @@ async function processAndAddVideo(videoId: string, donation: Donation, apiKey: s
     console.log("Fetched video details:", video);
     if (!video) return false;
 
+
+    let caption = ''
+
+    if (store.isCaptionsEnabled) {
+        console.log(`[YouTube] Fetching transcript for video: ${videoId}`);
+        const fetchedTranscript = await fetchTranscript(videoId);
+        if (fetchedTranscript) {
+            caption = fetchedTranscript;
+        }
+    }
+
     const stats = video.statistics;
     const snippet = video.snippet;
     const viewCount = parseInt(stats.viewCount || '0', 10);
@@ -108,19 +144,25 @@ async function processAndAddVideo(videoId: string, donation: Donation, apiKey: s
         return false;
     }
     
+   
+
     // Check blacklisted keywords
-    const isBlacklisted = blacklistedKeywords.some((keyword) =>
+    const isTitleBlacklisted = blacklistedKeywords.some((keyword) =>
         title.toLowerCase().includes(keyword.toLowerCase())
     );
-    if (isBlacklisted) {
-        if (youtubeVideoNotifications) {    
-            toast.info(i18n.t('notifications.video_rejected_blacklist'));
-        }
+
+    const isCaptionsBlacklisted = store.isCaptionsEnabled ? blacklistedKeywords.some((keyword) =>
+        caption.toLowerCase().includes(keyword.toLowerCase())
+    ) : false;
+
+
+    if (isTitleBlacklisted || isCaptionsBlacklisted) {
+        toast.info(i18n.t('notifications.video_rejected_blacklist'));
         console.warn(`Skipped: ${title} (Blacklisted)`);
         return false;
     }
 
-    const videoItem = {
+    const videoItem: VideoItem = {
         id: videoId,
         url: `https://www.youtube.com/watch?v=${videoId}`,
         title: title,

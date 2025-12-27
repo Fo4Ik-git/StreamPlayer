@@ -54,7 +54,7 @@
     "videos_added": "Видео добавлено в очередь: {{count}}",
     "video_rejected_views": "Видео отклонено: Мало просмотров ({{current}} < {{min}})",
     "video_rejected_likes": "Видео отклонено: Мало лайков ({{current}} < {{min}})",
-    "video_rejected_blacklist": "Видео отклонено: Запрещенное слово в названии",
+    "video_rejected_blacklist": "Видео отклонено: Запрещенное слово в названии или в тексте",
     "video_not_found": "Видео не найдено на YouTube",
     "processing_error": "Ошибка при обработке видео",
     "processing_playlist": "Обработка плейлиста: {{count}} видео..."
@@ -64,11 +64,18 @@
     "min_donation": "Мин. сумма доната",
     "min_views": "Мин. просмотров YouTube",
     "min_likes": "Мин. лайков YouTube",
-    "blacklistWords": "Запрещенные слова",
-    "add_keyword": "Добавить слово"
+    "add_keyword": "Добавить слово",
+    "blacklistWords": {
+      "title": "Запрещенные слова",
+      "subtitle": {
+        "line1": "Обработка текста видео",
+        "line2": "Искать запрещенные слова в субтитрах и тексте песен"
+      }
+    }
   },
   "errors":{
     "crtitical": "Критическая ошибка",
+    "video_not_found": "Видео не найдено на YouTube",
     "missing_api_key": "Не настроен YouTube API Key",
     "invalid_url": "Неверная ссылка на YouTube",
     "fetch_error": "Ошибка получения данных с YouTube",

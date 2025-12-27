@@ -3,3 +3,4 @@ requests
 websocket-client
 pyinstaller
 setuptools
+youtube-transcript-api

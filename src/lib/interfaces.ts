@@ -18,6 +18,7 @@ export interface VideoItem {
     duration: string;
     thumbnail: string;
     addedAt: number;
+    caption?: string;
 }
 
 export interface YoutubeVideoFilter {
@@ -53,6 +54,7 @@ export interface DonationAlertsState {
 export interface SettingsState extends DonationAlertsState, DonateXState, YoutubeVideoFilter, NotificationsState {
     youtubeApiKey: string;
     theme: 'dark' | 'light';
+    isCaptionsEnabled: boolean;
     setSettings: (settings: Partial<SettingsState>) => void;
     addBlacklistedKeyword: (keyword: string) => void;
     setDonationAlertsNotificationsStatus: (enabled: boolean) => void;
@@ -85,3 +87,4 @@ export interface QueueState {
 }
 
 export interface AppState extends SettingsState, QueueState {}
+
